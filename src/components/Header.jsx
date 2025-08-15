@@ -49,7 +49,11 @@ const Header = ({ user, onLogout, setActiveTab }) => {
     <header className={`shadow-lg border-b ${theme === 'colorful' ? 'bg-white border-gray-200' : 'bg-gray-800 border-gray-600'}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          <div className="flex items-center space-x-4">
+          <button 
+            onClick={() => navigate('/dashboard')} 
+            className="flex items-center space-x-4 cursor-pointer focus:outline-none focus:ring-2 focus:ring-orange-500 rounded-lg p-1 transition-all hover:opacity-90"
+            aria-label="Go to dashboard"
+          >
             <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${theme === 'colorful' ? 'bg-gradient-to-r from-orange-500 to-red-600' : 'bg-gray-500'}`}>
               <GraduationCap className="text-white" size={24} />
             </div>
@@ -59,7 +63,7 @@ const Header = ({ user, onLogout, setActiveTab }) => {
               </h1>
               <p className={`text-xs ${theme === 'colorful' ? 'text-gray-500' : 'text-gray-400'}`}>Connect • Learn • Grow</p>
             </div>
-          </div>
+          </button>
           
           <div className="flex items-center space-x-4">
             {user && (

@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ThemeContext } from './ThemeContext';
+import { auth } from './Firebase'; // Import auth
+import { onAuthStateChanged } from 'firebase/auth'; // Import for auth state listener
 import Header from './Header.jsx';
 import Navigation from './Navigation.jsx';
 import SocialFeed from './SocialFeed.jsx';
@@ -23,16 +25,17 @@ const TexasCampusPlatform = () => {
   const { theme } = useContext(ThemeContext);
 
   useEffect(() => {
-    // Load user from localStorage
-    const storedUser = JSON.parse(localStorage.getItem('user'));
-    if (!storedUser) {
-      navigate('/'); // Redirect to login if not logged in
-    } else {
-      const username = storedUser.username || storedUser.email?.split('@')[0] || 'User';
-      setUser({ ...storedUser, username });
-    }
+    // Listen for auth state changes
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      if (!currentUser) {
+        navigate('/'); // Redirect to login if not logged in
+      } else {
+        const username = currentUser.displayName || currentUser.email?.split('@')[0] || 'User';
+        setUser({ ...currentUser, username });
+      }
+    });
 
-    // Fetch data from JSON file
+    // Fetch data from JSON file (unchanged)
     fetch('/data.json')
       .then(response => {
         if (!response.ok) {
@@ -57,12 +60,15 @@ const TexasCampusPlatform = () => {
     const interval = setInterval(() => {
       setIsOnline(prev => !prev);
     }, 3000);
-    return () => clearInterval(interval);
+
+    return () => {
+      unsubscribe(); // Clean up listener
+      clearInterval(interval);
+    };
   }, [navigate]);
 
   const handleLogout = () => {
-    localStorage.removeItem('user');
-    navigate('/');
+    auth.signOut(); // Firebase sign out (will trigger onAuthStateChanged redirect)
   };
 
   const addPost = (postOrPosts) => {
