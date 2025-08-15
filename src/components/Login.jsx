@@ -3,7 +3,8 @@ import { useNavigate, Link } from 'react-router-dom';
 import { ThemeContext } from './ThemeContext';
 import { auth, googleProvider } from './Firebase';
 import { signInWithEmailAndPassword, signInWithPopup } from 'firebase/auth';
-import { FcGoogle } from 'react-icons/fc'; // Import Google icon
+import { FcGoogle } from 'react-icons/fc';
+import { GraduationCap } from 'lucide-react';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -27,6 +28,9 @@ const Login = () => {
 
     if (!password) {
       newErrors.password = 'Password is required';
+      isValid = false;
+    } else if (password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters';
       isValid = false;
     }
 
@@ -82,54 +86,104 @@ const Login = () => {
   };
 
   return (
-    <div className={`min-h-screen flex items-center justify-center ${theme === 'colorful' ? 'bg-gradient-to-br from-orange-50 via-red-50 to-pink-50' : 'bg-gray-100'}`}>
-      <div className={`${theme === 'colorful' ? 'bg-white' : 'bg-gray-800'} p-8 rounded-2xl shadow-lg w-96`}>
-        <h2 className={`text-2xl font-bold mb-6 text-center ${theme === 'colorful' ? 'text-gray-900' : 'text-white'}`}>Login to Texas Campus</h2>
-        {errors.general && <p className="text-red-500 text-sm mb-4">{errors.general}</p>}
-        <div>
-          <div className="mb-4">
+    <div className={`min-h-screen flex items-center justify-center bg-cover bg-center ${theme === 'colorful' ? 'bg-gradient-to-br from-orange-50 via-red-50 to-pink-50' : 'bg-gray-900'}`}>
+      <div className={`w-full max-w-md p-8 rounded-2xl shadow-2xl ${theme === 'colorful' ? 'bg-white/90 backdrop-blur-md' : 'bg-gray-800/90 backdrop-blur-md'}`}>
+        <div className="flex flex-col items-center mb-6">
+          <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${theme === 'colorful' ? 'bg-gradient-to-r from-orange-500 to-red-600' : 'bg-gray-600'}`}>
+            <GraduationCap className="text-white" size={24} />
+          </div>
+          <h2 className={`mt-3 text-3xl font-bold text-center ${theme === 'colorful' ? 'bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent' : 'text-white'}`}>
+            Texas Campus
+          </h2>
+          <p className={`text-sm ${theme === 'colorful' ? 'text-gray-600' : 'text-gray-400'}`}>Login to Connect • Learn • Grow</p>
+        </div>
+        {errors.general && (
+          <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg text-sm animate-pulse" role="alert">
+            {errors.general}
+          </div>
+        )}
+        <form onSubmit={handleEmailLogin} className="space-y-4">
+          <div>
+            <label htmlFor="email" className={`block text-sm font-medium ${theme === 'colorful' ? 'text-gray-700' : 'text-gray-300'}`}>
+              Email
+            </label>
             <input
+              id="email"
               type="email"
-              placeholder="Email"
-              className={`w-full p-3 border ${errors.email ? 'border-red-500' : theme === 'colorful' ? 'border-gray-200' : 'border-gray-600'} rounded-lg ${theme === 'colorful' ? 'bg-white' : 'bg-gray-700 text-white'}`}
+              placeholder="Enter your email"
+              className={`mt-1 w-full p-3 border rounded-lg transition-all duration-300 focus:ring-2 focus:ring-offset-2 ${theme === 'colorful' ? 'border-gray-300 focus:ring-orange-500 bg-white' : 'border-gray-600 focus:ring-gray-500 bg-gray-700 text-white'} ${errors.email ? 'border-red-500' : ''}`}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               disabled={loading}
+              aria-invalid={errors.email ? 'true' : 'false'}
+              aria-describedby={errors.email ? 'email-error' : undefined}
             />
-            {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
+            {errors.email && (
+              <p id="email-error" className="text-red-500 text-xs mt-1" role="alert">
+                {errors.email}
+              </p>
+            )}
           </div>
-          <div className="mb-4">
+          <div>
+            <label htmlFor="password" className={`block text-sm font-medium ${theme === 'colorful' ? 'text-gray-700' : 'text-gray-300'}`}>
+              Password
+            </label>
             <input
+              id="password"
               type="password"
-              placeholder="Password"
-              className={`w-full p-3 border ${errors.password ? 'border-red-500' : theme === 'colorful' ? 'border-gray-200' : 'border-gray-600'} rounded-lg ${theme === 'colorful' ? 'bg-white' : 'bg-gray-700 text-white'}`}
+              placeholder="Enter your password"
+              className={`mt-1 w-full p-3 border rounded-lg transition-all duration-300 focus:ring-2 focus:ring-offset-2 ${theme === 'colorful' ? 'border-gray-300 focus:ring-orange-500 bg-white' : 'border-gray-600 focus:ring-gray-500 bg-gray-700 text-white'} ${errors.password ? 'border-red-500' : ''}`}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               disabled={loading}
+              aria-invalid={errors.password ? 'true' : 'false'}
+              aria-describedby={errors.password ? 'password-error' : undefined}
             />
-            {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
+            {errors.password && (
+              <p id="password-error" className="text-red-500 text-xs mt-1" role="alert">
+                {errors.password}
+              </p>
+            )}
           </div>
           <button
-            type="button"
-            onClick={handleEmailLogin}
-            className={`w-full ${theme === 'colorful' ? 'bg-gradient-to-r from-orange-500 to-red-600' : 'bg-gray-500'} text-white py-3 rounded-lg hover:${theme === 'colorful' ? 'opacity-90' : 'bg-gray-600'} transition-opacity`}
+            type="submit"
+            className={`w-full py-3 rounded-lg text-white font-medium transition-all duration-300 transform hover:scale-105 ${theme === 'colorful' ? 'bg-gradient-to-r from-orange-500 to-red-600 hover:opacity-90' : 'bg-gray-600 hover:bg-gray-500'} ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
             disabled={loading}
           >
-            {loading ? 'Logging in...' : 'Login'}
+            {loading ? (
+              <span className="flex items-center justify-center">
+                <svg className="animate-spin h-5 w-5 mr-2 text-white" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                </svg>
+                Logging in...
+              </span>
+            ) : (
+              'Login'
+            )}
           </button>
-        </div>
-        <div className="mt-4">
+        </form>
+        <div className="mt-6">
+          <div className={`flex items-center ${theme === 'colorful' ? 'text-gray-600' : 'text-gray-400'}`}>
+            <hr className="flex-1 border-gray-300" />
+            <span className="px-3">or</span>
+            <hr className="flex-1 border-gray-300" />
+          </div>
           <button
             onClick={handleGoogleLogin}
-            className={`w-full flex items-center justify-center ${theme === 'colorful' ? 'bg-white border border-gray-300' : 'bg-gray-700 border border-gray-600'} text-${theme === 'colorful' ? 'gray-700' : 'white'} py-3 rounded-lg hover:${theme === 'colorful' ? 'bg-gray-100' : 'bg-gray-600'} transition-opacity`}
+            className={`mt-4 w-full flex items-center justify-center py-3 rounded-lg transition-all duration-300 transform hover:scale-105 ${theme === 'colorful' ? 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-100' : 'bg-gray-700 border border-gray-600 text-white hover:bg-gray-600'} ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
             disabled={loading}
+            aria-label="Login with Google"
           >
             <FcGoogle size={24} className="mr-2" />
             Login with Google
           </button>
         </div>
-        <p className={`mt-4 text-center ${theme === 'colorful' ? 'text-gray-600' : 'text-gray-400'}`}>
-          Don't have an account? <Link to="/signup" className={`${theme === 'colorful' ? 'text-orange-600 hover:underline' : 'text-gray-300 hover:text-white'}`}>Signup</Link>
+        <p className={`mt-6 text-center text-sm ${theme === 'colorful' ? 'text-gray-600' : 'text-gray-400'}`}>
+          Don't have an account?{' '}
+          <Link to="/signup" className={`${theme === 'colorful' ? 'text-orange-600 hover:underline' : 'text-gray-300 hover:text-white'} font-medium`}>
+            Sign up
+          </Link>
         </p>
       </div>
     </div>
