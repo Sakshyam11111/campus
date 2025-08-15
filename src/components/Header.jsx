@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { GraduationCap, User, Calendar, Settings, LogOut, ChevronDown, Palette, Users, BookOpen } from 'lucide-react';
+import { GraduationCap, User, Calendar, Settings, LogOut, ChevronDown, Palette, Users, BookOpen, Briefcase, Users as ClubIcon, Heart } from 'lucide-react';
 import { ThemeContext } from './ThemeContext';
 
 const Header = ({ user, onLogout, setActiveTab }) => {
@@ -40,6 +40,12 @@ const Header = ({ user, onLogout, setActiveTab }) => {
       setActiveTab('learning');
     } else if (action === 'events') {
       setActiveTab('events');
+    } else if (action === 'career') {
+      setActiveTab('career');
+    } else if (action === 'clubs') {
+      setActiveTab('clubs');
+    } else if (action === 'wellness') {
+      setActiveTab('wellness');
     } else {
       console.log(`${action} clicked`);
     }
@@ -117,7 +123,32 @@ const Header = ({ user, onLogout, setActiveTab }) => {
                     </button>
                     
                     <button
+                      onClick={() => handleMenuClick('career')}
+                      className={`flex items-center space-x-2 w-full px-4 py-2 text-sm transition-colors ${theme === 'colorful' ? 'text-gray-700 hover:bg-gray-100' : 'text-white hover:bg-gray-700'}`}
+                    >
+                      <Briefcase size={16} />
+                      <span>Career Hub</span>
+                    </button>
+                    
+                    <button
+                      onClick={() => handleMenuClick('clubs')}
+                      className={`flex items-center space-x-2 w-full px-4 py-2 text-sm transition-colors ${theme === 'colorful' ? 'text-gray-700 hover:bg-gray-100' : 'text-white hover:bg-gray-700'}`}
+                    >
+                      <ClubIcon size={16} />
+                      <span>Clubs Hub</span>
+                    </button>
+                    
+                    <button
+                      onClick={() => handleMenuClick('wellness')}
+                      className={`flex items-center space-x-2 w-full px-4 py-2 text-sm transition-colors ${theme === 'colorful' ? 'text-gray-700 hover:bg-gray-100' : 'text-white hover:bg-gray-700'}`}
+                    >
+                      <Heart size={16} />
+                      <span>Wellness Hub</span>
+                    </button>
+                    
+                    <button
                       onClick={() => handleMenuClick('settings')}
+                      class4747
                       className={`flex items-center space-x-2 w-full px-4 py-2 text-sm transition-colors ${theme === 'colorful' ? 'text-gray-700 hover:bg-gray-100' : 'text-white hover:bg-gray-700'}`}
                     >
                       <Settings size={16} />

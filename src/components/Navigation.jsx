@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
 import { ThemeContext } from './ThemeContext';
-import { Users, BookOpen, Calendar } from 'lucide-react';
+import { Users, BookOpen, Calendar, Briefcase, Users as ClubIcon, Heart } from 'lucide-react';
 
 const Navigation = ({ activeTab, setActiveTab }) => {
   const { theme } = useContext(ThemeContext);
@@ -31,8 +31,6 @@ const Navigation = ({ activeTab, setActiveTab }) => {
             className={`py-4 px-2 border-b-2 font-medium text-sm transition-colors ${
               activeTab === 'learning'
                 ? theme === 'colorful'
-
-
                   ? 'border-blue-500 text-blue-600'
                   : 'border-white text-white'
                 : theme === 'colorful'
@@ -60,6 +58,57 @@ const Navigation = ({ activeTab, setActiveTab }) => {
             <div className="flex items-center space-x-2">
               <Calendar size={20} />
               <span>Events</span>
+            </div>
+          </button>
+          <button
+            onClick={() => setActiveTab('career')}
+            className={`py-4 px-2 border-b-2 font-medium text-sm transition-colors ${
+              activeTab === 'career'
+                ? theme === 'colorful'
+                  ? 'border-green-500 text-green-600'
+                  : 'border-white text-white'
+                : theme === 'colorful'
+                  ? 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  : 'border-transparent text-gray-400 hover:text-white hover:border-gray-500'
+            }`}
+          >
+            <div className="flex items-center space-x-2">
+              <Briefcase size={20} />
+              <span>Career Hub</span>
+            </div>
+          </button>
+          <button
+            onClick={() => setActiveTab('clubs')}
+            className={`py-4 px-2 border-b-2 font-medium text-sm transition-colors ${
+              activeTab === 'clubs'
+                ? theme === 'colorful'
+                  ? 'border-yellow-500 text-yellow-600'
+                  : 'border-white text-white'
+                : theme === 'colorful'
+                  ? 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  : 'border-transparent text-gray-400 hover:text-white hover:border-gray-500'
+            }`}
+          >
+            <div className="flex items-center space-x-2">
+              <ClubIcon size={20} />
+              <span>Clubs Hub</span>
+            </div>
+          </button>
+          <button
+            onClick={() => setActiveTab('wellness')}
+            className={`py-4 px-2 border-b-2 font-medium text-sm transition-colors ${
+              activeTab === 'wellness'
+                ? theme === 'colorful'
+                  ? 'border-pink-500 text-pink-600'
+                  : 'border-white text-white'
+                : theme === 'colorful'
+                  ? 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  : 'border-transparent text-gray-400 hover:text-white hover:border-gray-500'
+            }`}
+          >
+            <div className="flex items-center space-x-2">
+              <Heart size={20} />
+              <span>Wellness Hub</span>
             </div>
           </button>
         </div>

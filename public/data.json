@@ -269,7 +269,8 @@
       "date": "Aug 20",
       "time": "10AM-4PM",
       "location": "Main Quad",
-      "attendees": 234
+      "attendees": 234,
+      "type": "career"
     },
     {
       "id": 2,
@@ -277,7 +278,8 @@
       "date": "Aug 22",
       "time": "6PM",
       "location": "Student Center",
-      "attendees": 45
+      "attendees": 45,
+      "type": "learning"
     },
     {
       "id": 3,
@@ -285,7 +287,8 @@
       "date": "Aug 25",
       "time": "7PM",
       "location": "Business Building",
-      "attendees": 156
+      "attendees": 156,
+      "type": "career"
     },
     {
       "id": 4,
@@ -293,7 +296,8 @@
       "date": "Aug 27",
       "time": "9AM-9PM",
       "location": "Tech Center",
-      "attendees": 89
+      "attendees": 89,
+      "type": "event"
     },
     {
       "id": 5,
@@ -301,7 +305,231 @@
       "date": "Aug 30",
       "time": "2PM-4PM",
       "location": "Rec Center",
-      "attendees": 67
+      "attendees": 67,
+      "type": "wellness"
+    },
+    {
+      "id": 6,
+      "name": "Sustainability Workshop",
+      "date": "Sep 1",
+      "time": "3PM-5PM",
+      "location": "Environmental Center",
+      "attendees": 80,
+      "type": "learning"
+    },
+    {
+      "id": 7,
+      "name": "AI Research Symposium",
+      "date": "Sep 3",
+      "time": "1PM-6PM",
+      "location": "Engineering Building",
+      "attendees": 120,
+      "type": "learning"
+    },
+    {
+      "id": 8,
+      "name": "Music and Arts Festival",
+      "date": "Sep 5",
+      "time": "12PM-8PM",
+      "location": "Campus Lawn",
+      "attendees": 300,
+      "type": "club"
+    },
+    {
+      "id": 9,
+      "name": "Entrepreneurship Bootcamp",
+      "date": "Sep 7",
+      "time": "9AM-3PM",
+      "location": "Business School",
+      "attendees": 95,
+      "type": "career"
+    },
+    {
+      "id": 10,
+      "name": "Cultural Diversity Fair",
+      "date": "Sep 10",
+      "time": "11AM-4PM",
+      "location": "Student Union",
+      "attendees": 200,
+      "type": "event"
+    },
+    {
+      "id": 11,
+      "name": "Resume Building Workshop",
+      "date": "Sep 12",
+      "time": "4PM-6PM",
+      "location": "Career Center",
+      "attendees": 50,
+      "type": "career"
+    },
+    {
+      "id": 12,
+      "name": "Photography Club Exhibition",
+      "date": "Sep 15",
+      "time": "2PM-5PM",
+      "location": "Art Gallery",
+      "attendees": 75,
+      "type": "club"
+    },
+    {
+      "id": 13,
+      "name": "Mindfulness Meditation Session",
+      "date": "Sep 17",
+      "time": "5PM-6PM",
+      "location": "Wellness Center",
+      "attendees": 40,
+      "type": "wellness"
+    },
+    {
+      "id": 14,
+      "name": "Engineering Club Project Showcase",
+      "date": "Sep 20",
+      "time": "1PM-4PM",
+      "location": "Engineering Building",
+      "attendees": 85,
+      "type": "club"
+    },
+    {
+      "id": 15,
+      "name": "Tech Industry Panel Discussion",
+      "date": "Sep 22",
+      "time": "6PM-8PM",
+      "location": "Tech Center",
+      "attendees": 110,
+      "type": "career"
+    },
+    {
+      "id": 16,
+      "name": "Stress Management Workshop",
+      "date": "Sep 25",
+      "time": "3PM-4:30PM",
+      "location": "Rec Center",
+      "attendees": 55,
+      "type": "wellness"
+    }
+  ],
+  "clubs": [
+    {
+      "id": 1,
+      "name": "Texas Photography Club",
+      "description": "A club for photography enthusiasts to share and learn.",
+      "nextMeeting": "Sep 15, 6PM",
+      "location": "Art Building",
+      "members": 45
+    },
+    {
+      "id": 2,
+      "name": "Texas Coding Club",
+      "description": "Join us to code, collaborate, and compete in hackathons.",
+      "nextMeeting": "Sep 10, 7PM",
+      "location": "Tech Center",
+      "members": 60
+    },
+    {
+      "id": 3,
+      "name": "Yoga Club",
+      "description": "Weekly yoga sessions for stress relief and wellness.",
+      "nextMeeting": "Sep 8, 5PM",
+      "location": "Rec Center",
+      "members": 30
+    },
+    {
+      "id": 4,
+      "name": "Engineering Innovators Club",
+      "description": "Building innovative projects and networking with industry professionals.",
+      "nextMeeting": "Sep 13, 6PM",
+      "location": "Engineering Building",
+      "members": 50
+    },
+    {
+      "id": 5,
+      "name": "Debate Society",
+      "description": "Sharpen your critical thinking and public speaking skills.",
+      "nextMeeting": "Sep 11, 7PM",
+      "location": "Student Union",
+      "members": 35
+    },
+    {
+      "id": 6,
+      "name": "Environmental Action Club",
+      "description": "Promoting sustainability and environmental awareness on campus.",
+      "nextMeeting": "Sep 14, 4PM",
+      "location": "Environmental Center",
+      "members": 40
+    }
+  ],
+  "careerResources": [
+    {
+      "id": 1,
+      "title": "Software Engineering Internship",
+      "company": "TechCorp",
+      "location": "Austin, TX",
+      "type": "Internship",
+      "major": "Computer Science"
+    },
+    {
+      "id": 2,
+      "title": "Marketing Assistant",
+      "company": "GrowEasy",
+      "location": "Remote",
+      "type": "Part-Time",
+      "major": "Business"
+    },
+    {
+      "id": 3,
+      "title": "Data Analyst Intern",
+      "company": "DataWorks",
+      "location": "Austin, TX",
+      "type": "Internship",
+      "major": "Mathematics, Statistics"
+    },
+    {
+      "id": 4,
+      "title": "Mechanical Engineering Co-op",
+      "company": "InnovateTech",
+      "location": "Houston, TX",
+      "type": "Co-op",
+      "major": "Engineering"
+    },
+    {
+      "id": 5,
+      "title": "Research Assistant",
+      "company": "BioLab",
+      "location": "Austin, TX",
+      "type": "Part-Time",
+      "major": "Biology, Chemistry"
+    }
+  ],
+  "wellnessResources": [
+    {
+      "id": 1,
+      "title": "Counseling Services",
+      "description": "Free mental health support for students.",
+      "contact": "counseling@utaustin.edu"
+    },
+    {
+      "id": 2,
+      "title": "Meditation Guide",
+      "description": "Online meditation sessions for stress relief.",
+      "link": "https://wellness.utaustin.edu/meditation"
+    },
+    {
+      "id": 3,
+      "title": "Peer Support Group",
+      "description": "Weekly meetings for students to discuss mental health and wellness.",
+      "contact": "peersupport@utaustin.edu"
+    },
+    {
+      "id": 4,
+      "title": "Fitness Classes",
+      "description": "Free group fitness classes including Zumba and Pilates.",
+      "link": "https://wellness.utaustin.edu/fitness"
+    },
+    {
+      "id": 5,
+      "title": "Nutrition Counseling",
+      "description": "Personalized nutrition advice from certified dietitians.",
+      "contact": "nutrition@utaustin.edu"
     }
   ]
 }

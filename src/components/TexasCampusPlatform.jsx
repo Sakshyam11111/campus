@@ -1,15 +1,17 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ThemeContext } from './ThemeContext';
-import { auth } from './Firebase'; // Import auth
-import { onAuthStateChanged } from 'firebase/auth'; // Import for auth state listener
+import { auth } from './Firebase';
+import { onAuthStateChanged } from 'firebase/auth';
 import Header from './Header.jsx';
 import Navigation from './Navigation.jsx';
 import SocialFeed from './SocialFeed.jsx';
 import LearningHub from './LearningHub.jsx';
 import Events from './Events.jsx';
+import CareerHub from './CareerHub.jsx';
+import ClubsHub from './ClubsHub.jsx';
+import WellnessHub from './WellnessHub.jsx';
 import LeftSidebar from './LeftSidebar.jsx';
-import RightSidebar from './RightSidebar.jsx';
 import ErrorBoundary from './ErrorBoundary.jsx';
 
 const TexasCampusPlatform = () => {
@@ -21,21 +23,22 @@ const TexasCampusPlatform = () => {
   const [courses, setCourses] = useState([]);
   const [studyGroups, setStudyGroups] = useState([]);
   const [eventsData, setEventsData] = useState([]);
+  const [clubs, setClubs] = useState([]);
+  const [careerResources, setCareerResources] = useState([]);
+  const [wellnessResources, setWellnessResources] = useState([]);
   const navigate = useNavigate();
   const { theme } = useContext(ThemeContext);
 
   useEffect(() => {
-    // Listen for auth state changes
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       if (!currentUser) {
-        navigate('/'); // Redirect to login if not logged in
+        navigate('/');
       } else {
         const username = currentUser.displayName || currentUser.email?.split('@')[0] || 'User';
         setUser({ ...currentUser, username });
       }
     });
 
-    // Fetch data from JSON file (unchanged)
     fetch('/data.json')
       .then(response => {
         if (!response.ok) {
@@ -48,6 +51,9 @@ const TexasCampusPlatform = () => {
         setCourses(data.courses || []);
         setStudyGroups(data.studyGroups || []);
         setEventsData(data.events || []);
+        setClubs(data.clubs || []);
+        setCareerResources(data.careerResources || []);
+        setWellnessResources(data.wellnessResources || []);
       })
       .catch(error => {
         console.error('Error fetching data:', error);
@@ -55,6 +61,9 @@ const TexasCampusPlatform = () => {
         setCourses([]);
         setStudyGroups([]);
         setEventsData([]);
+        setClubs([]);
+        setCareerResources([]);
+        setWellnessResources([]);
       });
 
     const interval = setInterval(() => {
@@ -62,20 +71,20 @@ const TexasCampusPlatform = () => {
     }, 3000);
 
     return () => {
-      unsubscribe(); // Clean up listener
+      unsubscribe();
       clearInterval(interval);
     };
   }, [navigate]);
 
   const handleLogout = () => {
-    auth.signOut(); // Firebase sign out (will trigger onAuthStateChanged redirect)
+    auth.signOut();
   };
 
   const addPost = (postOrPosts) => {
     if (Array.isArray(postOrPosts)) {
-      setSocialPosts(postOrPosts); // Update entire posts array (for comments)
+      setSocialPosts(postOrPosts);
     } else {
-      setSocialPosts(prev => [postOrPosts, ...prev]); // Add new post
+      setSocialPosts(prev => [postOrPosts, ...prev]);
     }
   };
 
@@ -100,8 +109,10 @@ const TexasCampusPlatform = () => {
             )}
             {activeTab === 'learning' && <LearningHub courses={courses} studyGroups={studyGroups} />}
             {activeTab === 'events' && <Events events={eventsData} />}
+            {activeTab === 'career' && <CareerHub careerResources={careerResources} events={eventsData.filter(event => event.type === 'career')} />}
+            {activeTab === 'clubs' && <ClubsHub clubs={clubs} events={eventsData.filter(event => event.type === 'club')} />}
+            {activeTab === 'wellness' && <WellnessHub wellnessResources={wellnessResources} events={eventsData.filter(event => event.type === 'wellness')} />}
           </div>
-          <RightSidebar />
         </div>
       </main>
     </div>
