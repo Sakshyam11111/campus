@@ -28,19 +28,6 @@ const Signup = () => {
       await updateProfile(user, { displayName: username });
       console.log('Profile updated with username:', username);
 
-      // Optional: Store user data in Firestore (comment out if Firestore errors persist)
-      try {
-        await setDoc(doc(db, 'users', user.uid), {
-          username,
-          email,
-          createdAt: new Date().toISOString(),
-        });
-        console.log('User data stored in Firestore');
-      } catch (firestoreErr) {
-        console.error('Firestore error:', firestoreErr);
-        // Continue despite Firestore error
-      }
-
       navigate('/dashboard');
     } catch (err) {
       console.error('Signup error:', err);
@@ -64,19 +51,6 @@ const Signup = () => {
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
       console.log('Google user signed in:', user);
-
-      // Optional: Store user data in Firestore
-      try {
-        await setDoc(doc(db, 'users', user.uid), {
-          username: user.displayName || user.email.split('@')[0],
-          email: user.email,
-          createdAt: new Date().toISOString(),
-        });
-        console.log('Google user data stored in Firestore');
-      } catch (firestoreErr) {
-        console.error('Firestore error:', firestoreErr);
-        // Continue despite Firestore error
-      }
 
       navigate('/dashboard');
     } catch (err) {
