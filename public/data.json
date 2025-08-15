@@ -1,0 +1,307 @@
+{
+  "socialPosts": [
+    {
+      "id": 1,
+      "user": { "name": "Sarah Johnson", "avatar": "SJ", "year": "Junior", "major": "Computer Science" },
+      "content": "Just aced my Data Structures exam! 🎉 Anyone up for celebrating at the student center?",
+      "timestamp": "2 hours ago",
+      "likes": 24,
+      "comments": [
+        {
+          "id": 1,
+          "user": { "name": "Mike Chen", "avatar": "MC" },
+          "content": "Congrats, Sarah! I'm in for the celebration!",
+          "timestamp": "1 hour ago"
+        },
+        {
+          "id": 2,
+          "user": { "name": "Emma Davis", "avatar": "ED" },
+          "content": "Amazing job! Let's meet at 7PM!",
+          "timestamp": "45 minutes ago"
+        }
+      ],
+      "type": "celebration",
+      "image": false
+    },
+    {
+      "id": 2,
+      "user": { "name": "Mike Chen", "avatar": "MC", "year": "Senior", "major": "Engineering" },
+      "content": "Looking for study partners for Advanced Calculus. Let's form a group!",
+      "timestamp": "4 hours ago",
+      "likes": 12,
+      "comments": [
+        {
+          "id": 1,
+          "user": { "name": "Ava Wilson", "avatar": "AW" },
+          "content": "I'm interested! When do you want to meet?",
+          "timestamp": "3 hours ago"
+        }
+      ],
+      "type": "study",
+      "image": false
+    },
+    {
+      "id": 3,
+      "user": { "name": "Texas Photography Club", "avatar": "TC", "year": "Club", "major": "Photography" },
+      "content": "Golden hour shots from today's campus tour. The autumn colors are incredible! 📸",
+      "timestamp": "6 hours ago",
+      "likes": 89,
+      "comments": [],
+      "type": "club",
+      "image": true,
+      "imageUrl": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e"
+    },
+    {
+      "id": 4,
+      "user": { "name": "Emma Davis", "avatar": "ED", "year": "Sophomore", "major": "Biology" },
+      "content": "Anyone attending the BioTech seminar this weekend? Need a buddy!",
+      "timestamp": "8 hours ago",
+      "likes": 45,
+      "comments": [],
+      "type": "event",
+      "image": false
+    },
+    {
+      "id": 5,
+      "user": { "name": "Liam Brown", "avatar": "LB", "year": "Freshman", "major": "Physics" },
+      "content": "First week at UT Austin and loving the campus vibe! Any tips for new students?",
+      "timestamp": "1 day ago",
+      "likes": 67,
+      "comments": [
+        {
+          "id": 1,
+          "user": { "name": "Olivia Martinez", "avatar": "OM" },
+          "content": "Welcome! Check out the library for study spots!",
+          "timestamp": "12 hours ago"
+        }
+      ],
+      "type": "general",
+      "image": false
+    },
+    {
+      "id": 6,
+      "user": { "name": "Olivia Martinez", "avatar": "OM", "year": "Junior", "major": "Psychology" },
+      "content": "Just joined a yoga club on campus. It's amazing for stress relief!",
+      "timestamp": "1 day ago",
+      "likes": 34,
+      "comments": [],
+      "type": "club",
+      "image": true,
+      "imageUrl": "https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0"
+    },
+    {
+      "id": 7,
+      "user": { "name": "Noah Lee", "avatar": "NL", "year": "Senior", "major": "Business" },
+      "content": "Internship fair was a success! Got some great leads. Who's hiring?",
+      "timestamp": "2 days ago",
+      "likes": 56,
+      "comments": [],
+      "type": "career",
+      "image": false
+    },
+    {
+      "id": 8,
+      "user": { "name": "Ava Wilson", "avatar": "AW", "year": "Sophomore", "major": "Chemistry" },
+      "content": "Need help with Organic Chem lab prep. Anyone free this evening?",
+      "timestamp": "3 days ago",
+      "likes": 22,
+      "comments": [],
+      "type": "study",
+      "image": false
+    },
+    {
+      "id": 9,
+      "user": { "name": "Texas Coding Club", "avatar": "TC", "year": "Club", "major": "Computer Science" },
+      "content": "Hackathon this Friday! Join us to build something cool! 🚀",
+      "timestamp": "4 days ago",
+      "likes": 78,
+      "comments": [
+        {
+          "id": 1,
+          "user": { "name": "Ethan Taylor", "avatar": "ET" },
+          "content": "Count me in! What's the theme?",
+          "timestamp": "3 days ago"
+        }
+      ],
+      "type": "event",
+      "image": true,
+      "imageUrl": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e"
+    },
+    {
+      "id": 10,
+      "user": { "name": "Ethan Taylor", "avatar": "ET", "year": "Junior", "major": "Mathematics" },
+      "content": "Just published my first research paper! Feeling on top of the world!",
+      "timestamp": "5 days ago",
+      "likes": 91,
+      "comments": [],
+      "type": "celebration",
+      "image": false
+    }
+  ],
+  "courses": [
+    {
+      "id": 1,
+      "name": "Advanced Web Development",
+      "instructor": "Dr. Smith",
+      "progress": 75,
+      "nextClass": "Mon 10AM",
+      "assignment": "React Project Due"
+    },
+    {
+      "id": 2,
+      "name": "Database Systems",
+      "instructor": "Prof. Johnson",
+      "progress": 60,
+      "nextClass": "Tue 2PM",
+      "assignment": "SQL Quiz Tomorrow"
+    },
+    {
+      "id": 3,
+      "name": "Machine Learning",
+      "instructor": "Dr. Williams",
+      "progress": 40,
+      "nextClass": "Wed 11AM",
+      "assignment": "Model Training Lab"
+    },
+    {
+      "id": 4,
+      "name": "Operating Systems",
+      "instructor": "Prof. Lee",
+      "progress": 50,
+      "nextClass": "Thu 1PM",
+      "assignment": "Threading Assignment"
+    },
+    {
+      "id": 5,
+      "name": "Data Structures",
+      "instructor": "Dr. Patel",
+      "progress": 80,
+      "nextClass": "Fri 9AM",
+      "assignment": "Binary Tree Project"
+    },
+    {
+      "id": 6,
+      "name": "Organic Chemistry",
+      "instructor": "Prof. Brown",
+      "progress": 65,
+      "nextClass": "Mon 3PM",
+      "assignment": "Lab Report Due"
+    },
+    {
+      "id": 7,
+      "name": "Calculus III",
+      "instructor": "Dr. Davis",
+      "progress": 55,
+      "nextClass": "Tue 10AM",
+      "assignment": "Vector Calculus Quiz"
+    },
+    {
+      "id": 8,
+      "name": "Software Engineering",
+      "instructor": "Prof. Garcia",
+      "progress": 70,
+      "nextClass": "Wed 2PM",
+      "assignment": "Agile Sprint Plan"
+    },
+    {
+      "id": 9,
+      "name": "Physics II",
+      "instructor": "Dr. Thompson",
+      "progress": 45,
+      "nextClass": "Thu 11AM",
+      "assignment": "Electromagnetism Lab"
+    },
+    {
+      "id": 10,
+      "name": "Psychology 101",
+      "instructor": "Prof. Wilson",
+      "progress": 60,
+      "nextClass": "Fri 1PM",
+      "assignment": "Behavior Analysis Paper"
+    }
+  ],
+  "studyGroups": [
+    {
+      "id": 1,
+      "name": "Calculus III Study Group",
+      "members": 8,
+      "subject": "Mathematics",
+      "nextSession": "Today 6PM",
+      "location": "Library Room 204"
+    },
+    {
+      "id": 2,
+      "name": "Organic Chemistry Lab",
+      "members": 12,
+      "subject": "Chemistry",
+      "nextSession": "Tomorrow 2PM",
+      "location": "Science Building"
+    },
+    {
+      "id": 3,
+      "name": "Data Science Project Team",
+      "members": 6,
+      "subject": "Computer Science",
+      "nextSession": "Friday 4PM",
+      "location": "Tech Center"
+    },
+    {
+      "id": 4,
+      "name": "Physics Study Session",
+      "members": 10,
+      "subject": "Physics",
+      "nextSession": "Monday 5PM",
+      "location": "Physics Lab"
+    },
+    {
+      "id": 5,
+      "name": "Business Case Study Group",
+      "members": 7,
+      "subject": "Business",
+      "nextSession": "Wednesday 3PM",
+      "location": "Business Building"
+    }
+  ],
+  "events": [
+    {
+      "id": 1,
+      "name": "Texas Tech Fair 2025",
+      "date": "Aug 20",
+      "time": "10AM-4PM",
+      "location": "Main Quad",
+      "attendees": 234
+    },
+    {
+      "id": 2,
+      "name": "Study Abroad Info Session",
+      "date": "Aug 22",
+      "time": "6PM",
+      "location": "Student Center",
+      "attendees": 45
+    },
+    {
+      "id": 3,
+      "name": "Career Networking Night",
+      "date": "Aug 25",
+      "time": "7PM",
+      "location": "Business Building",
+      "attendees": 156
+    },
+    {
+      "id": 4,
+      "name": "Campus Hackathon",
+      "date": "Aug 27",
+      "time": "9AM-9PM",
+      "location": "Tech Center",
+      "attendees": 89
+    },
+    {
+      "id": 5,
+      "name": "Yoga and Wellness Workshop",
+      "date": "Aug 30",
+      "time": "2PM-4PM",
+      "location": "Rec Center",
+      "attendees": 67
+    }
+  ]
+}
