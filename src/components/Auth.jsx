@@ -1,4 +1,4 @@
-// src/components/Auth.jsx
+
 import React, { useState } from "react";
 import { auth, googleProvider, db } from "../firebase";
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
