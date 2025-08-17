@@ -32,7 +32,7 @@ const Navigation = ({ activeTab, setActiveTab }) => {
                 key={item.id}
                 onClick={() => {
                   setActiveTab(item.id);
-                  setIsMenuOpen(false); // Close mobile menu on item click
+                  setIsMenuOpen(false); 
                 }}
                 className={`py-4 px-2 border-b-2 font-medium text-sm transition-colors ${
                   activeTab === item.id
