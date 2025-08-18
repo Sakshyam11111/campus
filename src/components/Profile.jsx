@@ -30,13 +30,13 @@ const Profile = ({ user, profileData }) => {
 
   const [formData, setFormData] = useState({
     username: profileData?.name || user?.username || 'Alex Johnson',
-    email: profileData?.email || user?.email || 'alex.johnson@university.edu',
+    email: profileData?.email || user?.email || 'user.johnson@university.edu',
     major: profileData?.major || 'Computer Science',
     year: profileData?.year || 'Junior',
     campus: profileData?.campus || 'Main Campus',
-    location: profileData?.location || 'San Francisco, CA',
-    phone: profileData?.phone || '+1 (555) 123-4567',
-    portfolio: profileData?.portfolio || 'https://alexjohnson.dev',
+    location: profileData?.location || 'Kathmandu, NP',
+    phone: profileData?.phone || '+ (977) 123-456-789',
+    portfolio: profileData?.portfolio || 'https://user.dev',
     gpa: profileData?.gpa || '3.85',
     creditHours: profileData?.creditHours || '98',
     currentCourses: profileData?.currentCourses || '5',
@@ -44,9 +44,9 @@ const Profile = ({ user, profileData }) => {
     expectedGraduation: profileData?.expectedGraduation || 'Spring 2025',
     bio: profileData?.bio || 'Passionate computer science student with a focus on web development and machine learning. Love building innovative solutions and contributing to open-source projects.',
     socialMedia: {
-      linkedin: profileData?.socialMedia?.linkedin || profileData?.linkedin || 'alex-johnson-dev',
-      instagram: profileData?.socialMedia?.instagram || profileData?.instagram || '@alex.codes',
-      github: profileData?.socialMedia?.github || profileData?.github || 'alexjohnson-dev'
+      linkedin: profileData?.socialMedia?.linkedin || profileData?.linkedin || 'user-linkedin',
+      instagram: profileData?.socialMedia?.instagram || profileData?.instagram || '@user.instagram',
+      github: profileData?.socialMedia?.github || profileData?.github || 'user-github'
     },
     achievements: profileData?.achievements || [
       { id: 1, title: 'Dean\'s List - Fall 2024', date: '2 weeks ago', type: 'academic' },

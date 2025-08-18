@@ -1,8 +1,9 @@
 import React, { useState, useContext } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { ThemeContext } from './ThemeContext';
-import { auth, googleProvider } from './Firebase';
-import { createUserWithEmailAndPassword, updateProfile, signInWithPopup } from 'firebase/auth';
+import { auth, googleProvider, db } from './Firebase';
+import { createUserWithEmailAndPassword, updateProfile, signInWithPopup } from 'firebase/auth'; // Auth functions
+import { setDoc, doc } from 'firebase/firestore'; // Firestore functions
 import { FcGoogle } from 'react-icons/fc';
 import { GraduationCap } from 'lucide-react';
 
@@ -52,13 +53,16 @@ const Signup = () => {
     if (validateForm()) {
       setLoading(true);
       try {
-        console.log('Attempting email signup with:', { email, username });
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
-        console.log('User created:', user);
-
         await updateProfile(user, { displayName: username });
-        console.log('Profile updated with username:', username);
+        
+        // Save basic user data to Firestore
+        await setDoc(doc(db, 'users', user.uid), {
+          name: username,
+          email: email,
+          createdAt: new Date().toISOString()
+        }, { merge: true });
 
         navigate('/dashboard');
       } catch (err) {
@@ -80,10 +84,15 @@ const Signup = () => {
     setErrors({ username: '', email: '', password: '', general: '' });
     setLoading(true);
     try {
-      console.log('Attempting Google signup');
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
-      console.log('Google user signed in:', user);
+
+      // Save basic user data to Firestore
+      await setDoc(doc(db, 'users', user.uid), {
+        name: user.displayName || user.email.split('@')[0],
+        email: user.email,
+        createdAt: new Date().toISOString()
+      }, { merge: true });
 
       navigate('/dashboard');
     } catch (err) {
@@ -118,7 +127,7 @@ const Signup = () => {
             {errors.general}
           </div>
         )}
-        <form onSubmit={handleEmailSignup} className="space-y-4">
+        <form onSubmit={handleEmailSignup} className="space-y-6">
           <div>
             <label htmlFor="username" className={`block text-sm font-medium ${theme === 'colorful' ? 'text-gray-700' : 'text-gray-300'}`}>
               Username
@@ -126,7 +135,7 @@ const Signup = () => {
             <input
               id="username"
               type="text"
-              placeholder="Enter your username"
+              placeholder="Choose a username"
               className={`mt-1 w-full p-3 border rounded-lg transition-all duration-300 focus:ring-2 focus:ring-offset-2 ${theme === 'colorful' ? 'border-gray-300 focus:ring-orange-500 bg-white' : 'border-gray-600 focus:ring-gray-500 bg-gray-700 text-white'} ${errors.username ? 'border-red-500' : ''}`}
               value={username}
               onChange={(e) => setUsername(e.target.value)}

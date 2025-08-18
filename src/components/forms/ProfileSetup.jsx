@@ -1,11 +1,14 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Mail, MapPin, Phone, Github, Linkedin, Instagram, Globe, Award, BookOpen, Heart, ChevronRight, ChevronLeft, Check } from 'lucide-react';
+import { User, Mail, MapPin, Phone, Github, Linkedin, Instagram, Globe, Award, BookOpen, Heart, ChevronRight, ChevronLeft, Check, GraduationCap } from 'lucide-react';
+import Header from '../Header.jsx';
+import Navigation from '../Navigation.jsx';
+import { auth, db } from '../Firebase';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 
-// Memoize InputField with explicit prop comparison
 const InputField = React.memo(
   ({ name, value, onChange, placeholder, type = 'text', icon: Icon, disabled = false, textarea = false, rows = 3 }) => {
-    console.log(`InputField rendered: name=${name}, value=${value}`); // Debug rendering
+    console.log(`InputField rendered: name=${name}, value=${value}`);
     return (
       <div className="relative">
         <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -17,7 +20,7 @@ const InputField = React.memo(
             name={name}
             value={value}
             onChange={(e) => {
-              console.log(`InputField onChange: name=${name}, value=${e.target.value}`); // Debug onChange
+              console.log(`InputField onChange: name=${name}, value=${e.target.value}`);
               onChange(e);
             }}
             placeholder={placeholder}
@@ -32,7 +35,7 @@ const InputField = React.memo(
             name={name}
             value={value}
             onChange={(e) => {
-              console.log(`InputField onChange: name=${name}, value=${e.target.value}`); // Debug onChange
+              console.log(`InputField onChange: name=${name}, value=${e.target.value}`);
               onChange(e);
             }}
             placeholder={placeholder}
@@ -57,7 +60,6 @@ const InputField = React.memo(
   }
 );
 
-// Memoize SelectField with explicit prop comparison
 const SelectField = React.memo(
   ({ name, value, onChange, options, placeholder, icon: Icon }) => (
     <div className="relative">
@@ -69,7 +71,7 @@ const SelectField = React.memo(
         name={name}
         value={value}
         onChange={(e) => {
-          console.log(`SelectField onChange: name=${name}, value=${e.target.value}`); // Debug onChange
+          console.log(`SelectField onChange: name=${name}, value=${e.target.value}`);
           onChange(e);
         }}
         className={`w-full ${Icon ? 'pl-12' : 'pl-4'} pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 bg-white hover:border-gray-300 appearance-none`}
@@ -95,11 +97,14 @@ const SelectField = React.memo(
   }
 );
 
+const getPreviewItems = (rawText) => rawText.split(',').map(item => item.trim()).filter(item => item.length > 0);
+
 const ProfileSetup = () => {
   const [step, setStep] = useState(1);
+  const [activeTab, setActiveTab] = useState('profile');
   const [formData, setFormData] = useState({
     name: '',
-    email: 'user@example.com',
+    email: '',
     major: '',
     age: '',
     year: '',
@@ -116,397 +121,216 @@ const ProfileSetup = () => {
   });
   const navigate = useNavigate();
 
-  // Mock user for Header component
+  useEffect(() => {
+    const checkProfile = async () => {
+      const user = auth.currentUser;
+      if (user) {
+        const docRef = doc(db, 'users', user.uid);
+        const docSnap = await getDoc(docRef);
+        console.log('Firestore check result:', { exists: docSnap.exists(), data: docSnap.data() }); // Debug log
+        if (docSnap.exists() && Object.keys(docSnap.data()).length > 1) {
+          // Redirect if profile exists with meaningful data (more than just default fields like UID)
+          navigate('/profile', { state: { profileData: docSnap.data() } });
+        } else {
+          // Set email for new user
+          setFormData(prev => ({
+            ...prev,
+            email: user.email || ''
+          }));
+        }
+      } else {
+        navigate('/login');
+      }
+    };
+    checkProfile();
+  }, [navigate]);
+
   const mockUser = {
     username: formData.name || 'User',
     email: formData.email || 'user@example.com'
   };
 
-  // Memoize handleChange to prevent re-creation
+  const isProfileIncomplete = !formData.name || !formData.email || !formData.major;
+
   const handleChange = useCallback((e) => {
     const { name, value } = e.target;
-    console.log(`handleChange: name=${name}, value=${value}`); // Debug log
     setFormData(prev => ({ ...prev, [name]: value }));
+    console.log(`Form updated: ${name}=${value}`); // Debug log
   }, []);
 
-  // Process skills and interests for preview
-  const getPreviewItems = (rawInput) => {
-    return rawInput ? rawInput.split(',').map(item => item.trim()).filter(Boolean) : [];
-  };
+  const nextStep = () => setStep(step + 1);
+  const prevStep = () => setStep(step - 1);
 
-  const nextStep = () => setStep(prev => prev + 1);
-  const prevStep = () => setStep(prev => prev - 1);
-
-  const handleSubmit = () => {
-    const skills = getPreviewItems(formData.skillsRaw);
-    const interests = getPreviewItems(formData.interestsRaw);
-    const achievementsArray = formData.achievements
-      .split(',')
-      .map(t => t.trim())
-      .filter(Boolean)
-      .map(title => ({
-        id: Date.now() + Math.random(),
-        title,
-        date: new Date().toLocaleDateString(),
-        type: 'custom'
-      }));
-
-    const updatedData = {
+  const handleSubmit = async () => {
+    const processedData = {
       ...formData,
-      skills,
-      interests,
-      achievements: achievementsArray,
-      socialMedia: {
-        linkedin: formData.linkedin,
-        github: formData.github,
-        instagram: formData.instagram
-      }
+      skills: getPreviewItems(formData.skillsRaw),
+      interests: getPreviewItems(formData.interestsRaw),
+      achievements: getPreviewItems(formData.achievements)
     };
-    console.log('Profile data:', updatedData);
-    navigate('/profile', { state: { profileData: updatedData } });
-  };
 
-  const handleLogout = () => {
-    console.log('Logout clicked');
-    navigate('/');
-  };
+    console.log('Processed data for submission:', processedData); // Debug log
+    delete processedData.skillsRaw;
+    delete processedData.interestsRaw;
 
-  const steps = [
-    { id: 1, name: 'Basic Info', icon: User },
-    { id: 2, name: 'Contact & Links', icon: Mail },
-    { id: 3, name: 'Skills & Interests', icon: Heart }
-  ];
+    try {
+      const user = auth.currentUser;
+      if (user) {
+        await setDoc(doc(db, 'users', user.uid), processedData, { merge: true });
+        console.log('Profile data saved to Firestore:', processedData);
+        localStorage.setItem('profileComplete', 'true');
+        navigate('/profile', { state: { profileData: processedData } });
+      } else {
+        console.error('No authenticated user found');
+      }
+    } catch (error) {
+      console.error('Error saving profile to Firestore:', error);
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50">
-      {/* Enhanced Header */}
-      <header className="bg-white/80 backdrop-blur-md shadow-sm border-b border-gray-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-3">
-              <div className="bg-gradient-to-r from-indigo-500 to-purple-600 p-2 rounded-lg">
-                <User className="h-6 w-6 text-white" />
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-red-50 to-pink-50">
+      <Header user={mockUser} />
+      <Navigation activeTab={activeTab} setActiveTab={setActiveTab} />
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="space-y-6">
+          {step === 1 && (
+            <div className="space-y-6">
+              <div className="text-center mb-8">
+                <h2 className="text-3xl font-bold text-gray-900 mb-2">Personal Info</h2>
+                <p className="text-gray-600">Tell us about yourself</p>
               </div>
-              <div>
-                <h1 className="text-xl font-bold text-gray-900">Profile Setup</h1>
-                <p className="text-sm text-gray-500">{mockUser.username}</p>
+              <div className="space-y-6">
+                <InputField name="name" value={formData.name} onChange={handleChange} placeholder="Full Name" icon={User} />
+                <InputField name="email" value={formData.email} onChange={handleChange} placeholder="Email" icon={Mail} disabled />
+                <InputField name="major" value={formData.major} onChange={handleChange} placeholder="Major" icon={BookOpen} />
+                <InputField name="age" value={formData.age} onChange={handleChange} placeholder="Age" type="number" icon={User} />
+                <SelectField name="year" value={formData.year} onChange={handleChange} options={['Freshman', 'Sophomore', 'Junior', 'Senior']} placeholder="Year" icon={GraduationCap} />
+              </div>
+              <div className="flex justify-end pt-6">
+                <button onClick={nextStep} className="flex items-center space-x-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-8 py-3 rounded-xl hover:from-indigo-600 hover:to-purple-700 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl">
+                  <span>Next Step</span>
+                  <ChevronRight className="h-5 w-5" />
+                </button>
               </div>
             </div>
-            <button
-              onClick={handleLogout}
-              className="text-gray-500 hover:text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors duration-200"
-            >
-              Logout
-            </button>
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Progress Steps */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between">
-            {steps.map((stepItem, index) => {
-              const StepIcon = stepItem.icon;
-              const isActive = step === stepItem.id;
-              const isCompleted = step > stepItem.id;
-              
-              return (
-                <div key={stepItem.id} className="flex items-center">
-                  <div className={`flex items-center space-x-2 px-4 py-2 rounded-full transition-all duration-300 ${
-                    isActive ? 'bg-indigo-100 text-indigo-700' : 
-                    isCompleted ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
-                  }`}>
-                    {isCompleted ? (
-                      <Check className="h-5 w-5" />
-                    ) : (
-                      <StepIcon className="h-5 w-5" />
-                    )}
-                    <span className="font-medium text-sm">{stepItem.name}</span>
-                  </div>
-                  {index < steps.length - 1 && (
-                    <div className={`h-0.5 w-16 mx-4 transition-colors duration-300 ${
-                      step > stepItem.id ? 'bg-green-300' : 'bg-gray-200'
-                    }`} />
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Form Card */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-          <div className="p-8">
-            {step === 1 && (
+          )}
+          {step === 2 && (
+            <div className="space-y-6">
+              <div className="text-center mb-8">
+                <h2 className="text-3xl font-bold text-gray-900 mb-2">Contact & Socials</h2>
+                <p className="text-gray-600">Stay connected</p>
+              </div>
               <div className="space-y-6">
-                <div className="text-center mb-8">
-                  <h2 className="text-3xl font-bold text-gray-900 mb-2">Let's get to know you</h2>
-                  <p className="text-gray-600">Tell us about your basic information and background</p>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Full Name</label>
-                    <InputField
-                      name="name"
-                      value={formData.name}
-                      onChange={handleChange}
-                      placeholder="Enter your full name"
-                      icon={User}
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Major</label>
-                    <InputField
-                      name="major"
-                      value={formData.major}
-                      onChange={handleChange}
-                      placeholder="Your field of study"
-                      icon={BookOpen}
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Age</label>
-                    <InputField
-                      name="age"
-                      type="number"
-                      value={formData.age}
-                      onChange={handleChange}
-                      placeholder="Your age"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Academic Year</label>
-                    <SelectField
-                      name="year"
-                      value={formData.year}
-                      onChange={handleChange}
-                      options={['Freshman', 'Sophomore', 'Junior', 'Senior', 'Graduate']}
-                      placeholder="Select your year"
-                      icon={BookOpen}
-                    />
-                  </div>
-                </div>
-                
+                <InputField name="phone" value={formData.phone} onChange={handleChange} placeholder="Phone Number" icon={Phone} />
+                <InputField name="location" value={formData.location} onChange={handleChange} placeholder="Location" icon={MapPin} />
+                <InputField name="portfolio" value={formData.portfolio} onChange={handleChange} placeholder="Portfolio URL" icon={Globe} />
+                <InputField name="linkedin" value={formData.linkedin} onChange={handleChange} placeholder="LinkedIn URL" icon={Linkedin} />
+                <InputField name="instagram" value={formData.instagram} onChange={handleChange} placeholder="Instagram Handle" icon={Instagram} />
+                <InputField name="github" value={formData.github} onChange={handleChange} placeholder="GitHub URL" icon={Github} />
+              </div>
+              <div className="flex justify-between pt-6">
+                <button onClick={prevStep} className="flex items-center space-x-2 bg-gray-200 text-gray-700 px-8 py-3 rounded-xl hover:bg-gray-300 transition-all duration-200">
+                  <ChevronLeft className="h-5 w-5" />
+                  <span>Back</span>
+                </button>
+                <button onClick={nextStep} className="flex items-center space-x-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-8 py-3 rounded-xl hover:from-indigo-600 hover:to-purple-700 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl">
+                  <span>Next Step</span>
+                  <ChevronRight className="h-5 w-5" />
+                </button>
+              </div>
+            </div>
+          )}
+          {step === 3 && (
+            <div className="space-y-6">
+              <div className="text-center mb-8">
+                <h2 className="text-3xl font-bold text-gray-900 mb-2">Skills & Interests</h2>
+                <p className="text-gray-600">What are you passionate about and what can you do?</p>
+              </div>
+              <div className="space-y-6">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Bio</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Technical Skills</label>
+                  <p className="text-xs text-gray-500 mb-3">Separate each skill with a comma (e.g., Python, JavaScript, React)</p>
                   <InputField
-                    name="bio"
-                    value={formData.bio}
+                    name="skillsRaw"
+                    value={formData.skillsRaw}
                     onChange={handleChange}
-                    placeholder="Tell us about yourself..."
-                    icon={User}
+                    placeholder="Python, JavaScript, React, Node.js, Machine Learning, SQL, Git, Docker..."
                     textarea={true}
                     rows={4}
                   />
+                  {formData.skillsRaw && (
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {getPreviewItems(formData.skillsRaw).map((skill, index) => (
+                        <span key={index} className="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-sm font-medium">
+                          {skill}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
-                
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Achievements</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Interests & Hobbies</label>
+                  <p className="text-xs text-gray-500 mb-3">What do you enjoy doing in your free time?</p>
+                  <InputField
+                    name="interestsRaw"
+                    value={formData.interestsRaw}
+                    onChange={handleChange}
+                    placeholder="Coding, Reading, Photography, Travel, Music, Sports, Volunteering, Art..."
+                    textarea={true}
+                    rows={4}
+                  />
+                  {formData.interestsRaw && (
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {getPreviewItems(formData.interestsRaw).map((interest, index) => (
+                        <span key={index} className="px-3 py-1 bg-pink-100 text-pink-700 rounded-full text-sm font-medium">
+                          {interest}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Achievements (Optional)</label>
+                  <p className="text-xs text-gray-500 mb-3">List your notable achievements, separated by commas</p>
                   <InputField
                     name="achievements"
                     value={formData.achievements}
                     onChange={handleChange}
-                    placeholder="List your achievements (comma separated)"
-                    icon={Award}
+                    placeholder="e.g., Dean's List, Hackathon Winner, Published Paper"
                     textarea={true}
-                    rows={3}
+                    rows={4}
+                    icon={Award}
                   />
-                </div>
-                
-                <div className="flex justify-end pt-4">
-                  <button
-                    onClick={nextStep}
-                    className="flex items-center space-x-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-8 py-3 rounded-xl hover:from-indigo-600 hover:to-purple-700 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl"
-                  >
-                    <span>Next Step</span>
-                    <ChevronRight className="h-5 w-5" />
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {step === 2 && (
-              <div className="space-y-6">
-                <div className="text-center mb-8">
-                  <h2 className="text-3xl font-bold text-gray-900 mb-2">Contact & Social Links</h2>
-                  <p className="text-gray-600">How can people reach you and view your work? Enter full URLs for social links.</p>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Email Address</label>
-                    <InputField
-                      name="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      placeholder="your.email@domain.com"
-                      icon={Mail}
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Phone Number</label>
-                    <InputField
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleChange}
-                      placeholder="+1 (555) 123-4567"
-                      icon={Phone}
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Location</label>
-                    <InputField
-                      name="location"
-                      value={formData.location}
-                      onChange={handleChange}
-                      placeholder="City, State/Country"
-                      icon={MapPin}
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Portfolio Website</label>
-                    <InputField
-                      name="portfolio"
-                      value={formData.portfolio}
-                      onChange={handleChange}
-                      placeholder="https://yourportfolio.com"
-                      icon={Globe}
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">LinkedIn Profile</label>
-                    <InputField
-                      name="linkedin"
-                      value={formData.linkedin}
-                      onChange={handleChange}
-                      placeholder="https://linkedin.com/in/username"
-                      icon={Linkedin}
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">GitHub Profile</label>
-                    <InputField
-                      name="github"
-                      value={formData.github}
-                      onChange={handleChange}
-                      placeholder="https://github.com/username"
-                      icon={Github}
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Instagram Profile (Optional)</label>
-                    <InputField
-                      name="instagram"
-                      value={formData.instagram}
-                      onChange={handleChange}
-                      placeholder="https://instagram.com/username"
-                      icon={Instagram}
-                    />
-                  </div>
-                </div>
-                
-                <div className="flex justify-between pt-4">
-                  <button
-                    onClick={prevStep}
-                    className="flex items-center space-x-2 bg-gray-200 text-gray-700 px-8 py-3 rounded-xl hover:bg-gray-300 transition-all duration-200"
-                  >
-                    <ChevronLeft className="h-5 w-5" />
-                    <span>Back</span>
-                  </button>
-                  <button
-                    onClick={nextStep}
-                    className="flex items-center space-x-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-8 py-3 rounded-xl hover:from-indigo-600 hover:to-purple-700 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl"
-                  >
-                    <span>Next Step</span>
-                    <ChevronRight className="h-5 w-5" />
-                  </button>
+                  {formData.achievements && (
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {getPreviewItems(formData.achievements).map((achievement, index) => (
+                        <span key={index} className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">
+                          {achievement}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
-            )}
-
-            {step === 3 && (
-              <div className="space-y-6">
-                <div className="text-center mb-8">
-                  <h2 className="text-3xl font-bold text-gray-900 mb-2">Skills & Interests</h2>
-                  <p className="text-gray-600">What are you passionate about and what can you do?</p>
-                </div>
-                
-                <div className="space-y-6">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Technical Skills</label>
-                    <p className="text-xs text-gray-500 mb-3">Separate each skill with a comma (e.g., Python, JavaScript, React)</p>
-                    <InputField
-                      name="skillsRaw"
-                      value={formData.skillsRaw}
-                      onChange={handleChange}
-                      placeholder="Python, JavaScript, React, Node.js, Machine Learning, SQL, Git, Docker..."
-                      textarea={true}
-                      rows={4}
-                    />
-                    {formData.skillsRaw && (
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        {getPreviewItems(formData.skillsRaw).map((skill, index) => (
-                          <span key={index} className="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-sm font-medium">
-                            {skill}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Interests & Hobbies</label>
-                    <p className="text-xs text-gray-500 mb-3">What do you enjoy doing in your free time?</p>
-                    <InputField
-                      name="interestsRaw"
-                      value={formData.interestsRaw}
-                      onChange={handleChange}
-                      placeholder="Coding, Reading, Photography, Travel, Music, Sports, Volunteering, Art..."
-                      textarea={true}
-                      rows={4}
-                    />
-                    {formData.interestsRaw && (
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        {getPreviewItems(formData.interestsRaw).map((interest, index) => (
-                          <span key={index} className="px-3 py-1 bg-pink-100 text-pink-700 rounded-full text-sm font-medium">
-                            {interest}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-                
-                <div className="flex justify-between pt-6">
-                  <button
-                    onClick={prevStep}
-                    className="flex items-center space-x-2 bg-gray-200 text-gray-700 px-8 py-3 rounded-xl hover:bg-gray-300 transition-all duration-200"
-                  >
-                    <ChevronLeft className="h-5 w-5" />
-                    <span>Back</span>
-                  </button>
-                  <button
-                    onClick={handleSubmit}
-                    className="flex items-center space-x-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white px-8 py-3 rounded-xl hover:from-green-600 hover:to-emerald-700 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl"
-                  >
-                    <Check className="h-5 w-5" />
-                    <span>Complete Setup</span>
-                  </button>
-                </div>
+              <div className="flex justify-between pt-6">
+                <button
+                  onClick={prevStep}
+                  className="flex items-center space-x-2 bg-gray-200 text-gray-700 px-8 py-3 rounded-xl hover:bg-gray-300 transition-all duration-200"
+                >
+                  <ChevronLeft className="h-5 w-5" />
+                  <span>Back</span>
+                </button>
+                <button
+                  onClick={handleSubmit}
+                  className="flex items-center space-x-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white px-8 py-3 rounded-xl hover:from-green-600 hover:to-emerald-700 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl"
+                >
+                  <Check className="h-5 w-5" />
+                  <span>Complete Setup</span>
+                </button>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </main>
     </div>
