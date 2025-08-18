@@ -1,6 +1,5 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ThemeContext } from './ThemeContext';
 import { auth } from './Firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import Header from './Header.jsx';
@@ -27,7 +26,6 @@ const TexasCampusPlatform = () => {
   const [careerResources, setCareerResources] = useState([]);
   const [wellnessResources, setWellnessResources] = useState([]);
   const navigate = useNavigate();
-  const { theme } = useContext(ThemeContext);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -89,7 +87,7 @@ const TexasCampusPlatform = () => {
   };
 
   return (
-    <div className={`min-h-screen ${theme === 'colorful' ? 'bg-gradient-to-br from-orange-50 via-red-50 to-pink-50' : 'bg-gray-100'}`}>
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-red-50 to-pink-50">
       <Header 
         notifications={notifications} 
         isOnline={isOnline} 
