@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Users, BookOpen, Calendar, Briefcase, Heart, Menu, X } from 'lucide-react';
+import { Users, BookOpen, Calendar, Briefcase, Heart, Menu, X, MessageCircle } from 'lucide-react';
 
 const Navigation = ({ activeTab, setActiveTab }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -11,6 +11,7 @@ const Navigation = ({ activeTab, setActiveTab }) => {
     { id: 'career', label: 'Career Hub', icon: Briefcase, activeColor: 'green-500', activeText: 'green-600' },
     { id: 'clubs', label: 'Clubs Hub', icon: Users, activeColor: 'yellow-500', activeText: 'yellow-600' },
     { id: 'wellness', label: 'Wellness Hub', icon: Heart, activeColor: 'pink-500', activeText: 'pink-600' },
+    { id: 'chatbot', label: 'Chatbot', icon: MessageCircle, activeColor: 'indigo-500', activeText: 'indigo-600' },
   ];
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);

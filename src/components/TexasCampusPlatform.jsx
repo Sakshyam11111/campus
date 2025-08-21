@@ -11,6 +11,7 @@ import CareerHub from './CareerHub.jsx';
 import ClubsHub from './ClubsHub.jsx';
 import WellnessHub from './WellnessHub.jsx';
 import LeftSidebar from './LeftSidebar.jsx';
+import Chatbot from './Chatbot.jsx';
 import ErrorBoundary from './ErrorBoundary.jsx';
 
 const TexasCampusPlatform = () => {
@@ -110,6 +111,7 @@ const TexasCampusPlatform = () => {
             {activeTab === 'career' && <CareerHub careerResources={careerResources} events={eventsData.filter(event => event.type === 'career')} />}
             {activeTab === 'clubs' && <ClubsHub clubs={clubs} events={eventsData.filter(event => event.type === 'club')} />}
             {activeTab === 'wellness' && <WellnessHub wellnessResources={wellnessResources} events={eventsData.filter(event => event.type === 'wellness')} />}
+            {activeTab === 'chatbot' && <Chatbot />}
           </div>
         </div>
       </main>

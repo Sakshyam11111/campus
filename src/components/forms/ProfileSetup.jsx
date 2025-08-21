@@ -6,105 +6,68 @@ import Navigation from '../Navigation.jsx';
 import { auth, db } from '../Firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 
-const InputField = React.memo(
-  ({ name, value, onChange, placeholder, type = 'text', icon: Icon, disabled = false, textarea = false, rows = 3 }) => {
-    console.log(`InputField rendered: name=${name}, value=${value}`);
-    return (
-      <div className="relative">
-        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-          {Icon && <Icon className="h-5 w-5 text-gray-400 focus-within:text-indigo-500 transition-colors duration-200" />}
-        </div>
-        {textarea ? (
-          <textarea
-            key={name}
-            name={name}
-            value={value}
-            onChange={(e) => {
-              console.log(`InputField onChange: name=${name}, value=${e.target.value}`);
-              onChange(e);
-            }}
-            placeholder={placeholder}
-            rows={rows}
-            disabled={disabled}
-            className={`w-full ${Icon ? 'pl-12' : 'pl-4'} pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 resize-none ${disabled ? 'bg-gray-50 text-gray-500' : 'bg-white hover:border-gray-300'}`}
-          />
-        ) : (
-          <input
-            key={name}
-            type={type}
-            name={name}
-            value={value}
-            onChange={(e) => {
-              console.log(`InputField onChange: name=${name}, value=${e.target.value}`);
-              onChange(e);
-            }}
-            placeholder={placeholder}
-            disabled={disabled}
-            className={`w-full ${Icon ? 'pl-12' : 'pl-4'} pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 ${disabled ? 'bg-gray-50 text-gray-500' : 'bg-white hover:border-gray-300'}`}
-          />
-        )}
-      </div>
-    );
-  },
-  (prevProps, nextProps) => {
-    return (
-      prevProps.name === nextProps.name &&
-      prevProps.value === nextProps.value &&
-      prevProps.disabled === nextProps.disabled &&
-      prevProps.placeholder === nextProps.placeholder &&
-      prevProps.type === nextProps.type &&
-      prevProps.textarea === nextProps.textarea &&
-      prevProps.rows === nextProps.rows &&
-      prevProps.icon === nextProps.icon
-    );
-  }
-);
-
-const SelectField = React.memo(
-  ({ name, value, onChange, options, placeholder, icon: Icon }) => (
+const InputField = ({ name, value, onChange, placeholder, type = 'text', icon: Icon, disabled = false, textarea = false, rows = 3 }) => {
+  console.log(`InputField rendered: name=${name}, value=${value}`);
+  return (
     <div className="relative">
-      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
+      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
         {Icon && <Icon className="h-5 w-5 text-gray-400 focus-within:text-indigo-500 transition-colors duration-200" />}
       </div>
-      <select
-        key={name}
-        name={name}
-        value={value}
-        onChange={(e) => {
-          console.log(`SelectField onChange: name=${name}, value=${e.target.value}`);
-          onChange(e);
-        }}
-        className={`w-full ${Icon ? 'pl-12' : 'pl-4'} pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 bg-white hover:border-gray-300 appearance-none`}
-      >
-        <option value="">{placeholder}</option>
-        {options.map(option => (
-          <option key={option} value={option}>{option}</option>
-        ))}
-      </select>
-      <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
-        <ChevronRight className="h-5 w-5 text-gray-400 transform rotate-90" />
-      </div>
+      {textarea ? (
+        <textarea
+          name={name}
+          value={value}
+          onChange={onChange}
+          placeholder={placeholder}
+          rows={rows}
+          disabled={disabled}
+          className={`w-full ${Icon ? 'pl-12' : 'pl-4'} pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 resize-none ${disabled ? 'bg-gray-50 text-gray-500' : 'bg-white hover:border-gray-300'}`}
+        />
+      ) : (
+        <input
+          type={type}
+          name={name}
+          value={value}
+          onChange={onChange}
+          placeholder={placeholder}
+          disabled={disabled}
+          className={`w-full ${Icon ? 'pl-12' : 'pl-4'} pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 ${disabled ? 'bg-gray-50 text-gray-500' : 'bg-white hover:border-gray-300'}`}
+        />
+      )}
     </div>
-  ),
-  (prevProps, nextProps) => {
-    return (
-      prevProps.name === nextProps.name &&
-      prevProps.value === nextProps.value &&
-      prevProps.placeholder === nextProps.placeholder &&
-      prevProps.options === nextProps.options &&
-      prevProps.icon === nextProps.icon
-    );
-  }
+  );
+};
+
+const SelectField = ({ name, value, onChange, options, placeholder, icon: Icon }) => (
+  <div className="relative">
+    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
+      {Icon && <Icon className="h-5 w-5 text-gray-400 focus-within:text-indigo-500 transition-colors duration-200" />}
+    </div>
+    <select
+      name={name}
+      value={value}
+      onChange={onChange}
+      className={`w-full ${Icon ? 'pl-12' : 'pl-4'} pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 bg-white hover:border-gray-300 appearance-none`}
+    >
+      <option value="">{placeholder}</option>
+      {options.map(option => (
+        <option key={option} value={option}>{option}</option>
+      ))}
+    </select>
+    <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+      <ChevronRight className="h-5 w-5 text-gray-400 transform rotate-90" />
+    </div>
+  </div>
 );
 
 const getPreviewItems = (rawText) => rawText.split(',').map(item => item.trim()).filter(item => item.length > 0);
 
-const ProfileSetup = () => {
+const ProfileSetup = ({ userEmail }) => {
   const [step, setStep] = useState(1);
   const [activeTab, setActiveTab] = useState('profile');
   const [formData, setFormData] = useState({
     name: '',
-    email: '',
+    email: userEmail || auth.currentUser?.email || '',
     major: '',
     age: '',
     year: '',
@@ -119,96 +82,178 @@ const ProfileSetup = () => {
     skillsRaw: '',
     interestsRaw: ''
   });
+  const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
-    const checkProfile = async () => {
+    if (!auth.currentUser) {
+      navigate('/login');
+      return;
+    }
+
+    const fetchProfile = async () => {
       const user = auth.currentUser;
       if (user) {
         const docRef = doc(db, 'users', user.uid);
         const docSnap = await getDoc(docRef);
-        console.log('Firestore check result:', { exists: docSnap.exists(), data: docSnap.data() }); // Debug log
-        if (docSnap.exists() && Object.keys(docSnap.data()).length > 1) {
-          // Redirect if profile exists with meaningful data (more than just default fields like UID)
-          navigate('/profile', { state: { profileData: docSnap.data() } });
-        } else {
-          // Set email for new user
+        console.log('Firestore fetch result:', { exists: docSnap.exists(), data: docSnap.data() });
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          if (data.name && data.email && data.major && data.year) {
+            navigate('/platform'); // Redirect to platform instead of profile
+            return;
+          }
           setFormData(prev => ({
             ...prev,
-            email: user.email || ''
+            ...data,
+            email: userEmail || user.email || prev.email,
+            skillsRaw: data.skills?.join(', ') || '',
+            interestsRaw: data.interests?.join(', ') || '',
+            achievements: data.achievements?.map(a => a.title).join(', ') || ''
           }));
+        } else {
+          setFormData(prev => ({ ...prev, email: userEmail || user.email || '' }));
         }
-      } else {
-        navigate('/login');
       }
     };
-    checkProfile();
-  }, [navigate]);
-
-  const mockUser = {
-    username: formData.name || 'User',
-    email: formData.email || 'user@example.com'
-  };
-
-  const isProfileIncomplete = !formData.name || !formData.email || !formData.major;
+    fetchProfile();
+  }, [navigate, userEmail]);
 
   const handleChange = useCallback((e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    console.log(`Form updated: ${name}=${value}`); // Debug log
+    if (name !== 'email') {
+      setFormData(prev => ({ ...prev, [name]: value }));
+      console.log(`Form updated: ${name}=${value}`);
+    }
   }, []);
 
-  const nextStep = () => setStep(step + 1);
-  const prevStep = () => setStep(step - 1);
+  const nextStep = () => {
+    if (step === 1 && (!formData.name || !formData.email || !formData.major || !formData.year)) {
+      setError('Please fill in all required fields (Name, Email, Major, Year).');
+      setTimeout(() => setError(''), 3000);
+      return;
+    }
+    if (step < 3) setStep(prev => prev + 1);
+  };
+
+  const prevStep = () => {
+    if (step > 1) setStep(prev => prev - 1);
+  };
 
   const handleSubmit = async () => {
-    const processedData = {
-      ...formData,
-      skills: getPreviewItems(formData.skillsRaw),
-      interests: getPreviewItems(formData.interestsRaw),
-      achievements: getPreviewItems(formData.achievements)
-    };
+    const user = auth.currentUser;
+    if (!user) {
+      setError('You must be logged in to save your profile.');
+      setTimeout(() => setError(''), 3000);
+      return;
+    }
 
-    console.log('Processed data for submission:', processedData); // Debug log
-    delete processedData.skillsRaw;
-    delete processedData.interestsRaw;
+    if (!formData.name || !formData.email || !formData.major || !formData.year) {
+      setError('Please fill in all required fields (Name, Email, Major, Year).');
+      setTimeout(() => setError(''), 3000);
+      return;
+    }
 
     try {
-      const user = auth.currentUser;
-      if (user) {
-        await setDoc(doc(db, 'users', user.uid), processedData, { merge: true });
-        console.log('Profile data saved to Firestore:', processedData);
-        localStorage.setItem('profileComplete', 'true');
-        navigate('/profile', { state: { profileData: processedData } });
-      } else {
-        console.error('No authenticated user found');
-      }
+      const profileData = {
+        name: formData.name,
+        email: user.email, // Use auth email to ensure consistency
+        major: formData.major,
+        age: formData.age,
+        year: formData.year,
+        bio: formData.bio,
+        achievements: getPreviewItems(formData.achievements).map(title => ({
+          id: Date.now() + Math.random(),
+          title,
+          date: new Date().toLocaleDateString(),
+          type: 'custom'
+        })),
+        phone: formData.phone,
+        location: formData.location,
+        portfolio: formData.portfolio,
+        socialMedia: {
+          linkedin: formData.linkedin,
+          instagram: formData.instagram,
+          github: formData.github
+        },
+        skills: getPreviewItems(formData.skillsRaw),
+        interests: getPreviewItems(formData.interestsRaw)
+      };
+
+      await setDoc(doc(db, 'users', user.uid), profileData);
+      console.log('Profile saved:', profileData);
+      setSuccessMessage('Profile saved successfully!');
+      setTimeout(() => {
+        setSuccessMessage('');
+        navigate('/platform');
+      }, 2000);
     } catch (error) {
-      console.error('Error saving profile to Firestore:', error);
+      console.error('Error saving profile:', error);
+      setError(`Failed to save profile: ${error.message}`);
+      setTimeout(() => setError(''), 3000);
     }
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-red-50 to-pink-50">
-      <Header user={mockUser} />
+      <Header user={{ username: formData.name || 'User' }} onLogout={() => auth.signOut()} setActiveTab={setActiveTab} />
       <Navigation activeTab={activeTab} setActiveTab={setActiveTab} />
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="space-y-6">
+      <main className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="bg-white shadow-2xl rounded-2xl p-8 border border-gray-100">
+          {error && (
+            <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg text-sm">
+              {error}
+            </div>
+          )}
+          {successMessage && (
+            <div className="mb-4 p-3 bg-green-100 text-green-700 rounded-lg text-sm">
+              {successMessage}
+            </div>
+          )}
+          <div className="mb-8 flex justify-between items-center">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Profile Setup</h1>
+              <p className="text-gray-600">Step {step} of 3</p>
+            </div>
+            <div className="flex space-x-2">
+              {[1, 2, 3].map(s => (
+                <div key={s} className={`w-3 h-3 rounded-full ${step === s ? 'bg-indigo-500' : 'bg-gray-300'}`} />
+              ))}
+            </div>
+          </div>
           {step === 1 && (
             <div className="space-y-6">
               <div className="text-center mb-8">
-                <h2 className="text-3xl font-bold text-gray-900 mb-2">Personal Info</h2>
-                <p className="text-gray-600">Tell us about yourself</p>
+                <h2 className="text-3xl font-bold text-gray-900 mb-2">Personal Information</h2>
+                <p className="text-gray-600">Tell us about yourself to get started.</p>
               </div>
               <div className="space-y-6">
                 <InputField name="name" value={formData.name} onChange={handleChange} placeholder="Full Name" icon={User} />
-                <InputField name="email" value={formData.email} onChange={handleChange} placeholder="Email" icon={Mail} disabled />
+                <InputField
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  placeholder="Email"
+                  icon={Mail}
+                  disabled
+                />
                 <InputField name="major" value={formData.major} onChange={handleChange} placeholder="Major" icon={BookOpen} />
-                <InputField name="age" value={formData.age} onChange={handleChange} placeholder="Age" type="number" icon={User} />
-                <SelectField name="year" value={formData.year} onChange={handleChange} options={['Freshman', 'Sophomore', 'Junior', 'Senior']} placeholder="Year" icon={GraduationCap} />
+                <SelectField
+                  name="year"
+                  value={formData.year}
+                  onChange={handleChange}
+                  options={['First', 'Second', 'Third', 'Fourth', 'Fifth']}
+                  placeholder="Select Year"
+                  icon={GraduationCap}
+                />
+                <InputField name="age" value={formData.age} onChange={handleChange} placeholder="Age" type="number" icon={Heart} />
               </div>
-              <div className="flex justify-end pt-6">
-                <button onClick={nextStep} className="flex items-center space-x-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-8 py-3 rounded-xl hover:from-indigo-600 hover:to-purple-700 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl">
+              <div className="pt-6 flex justify-end">
+                <button
+                  onClick={nextStep}
+                  className="flex items-center space-x-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-8 py-3 rounded-xl hover:from-indigo-600 hover:to-purple-700 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl"
+                >
                   <span>Next Step</span>
                   <ChevronRight className="h-5 w-5" />
                 </button>
@@ -219,7 +264,7 @@ const ProfileSetup = () => {
             <div className="space-y-6">
               <div className="text-center mb-8">
                 <h2 className="text-3xl font-bold text-gray-900 mb-2">Contact & Socials</h2>
-                <p className="text-gray-600">Stay connected</p>
+                <p className="text-gray-600">Add your contact details and social media profiles.</p>
               </div>
               <div className="space-y-6">
                 <InputField name="phone" value={formData.phone} onChange={handleChange} placeholder="Phone Number" icon={Phone} />
@@ -230,11 +275,17 @@ const ProfileSetup = () => {
                 <InputField name="github" value={formData.github} onChange={handleChange} placeholder="GitHub URL" icon={Github} />
               </div>
               <div className="flex justify-between pt-6">
-                <button onClick={prevStep} className="flex items-center space-x-2 bg-gray-200 text-gray-700 px-8 py-3 rounded-xl hover:bg-gray-300 transition-all duration-200">
+                <button
+                  onClick={prevStep}
+                  className="flex items-center space-x-2 bg-gray-200 text-gray-700 px-8 py-3 rounded-xl hover:bg-gray-300 transition-all duration-200"
+                >
                   <ChevronLeft className="h-5 w-5" />
                   <span>Back</span>
                 </button>
-                <button onClick={nextStep} className="flex items-center space-x-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-8 py-3 rounded-xl hover:from-indigo-600 hover:to-purple-700 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl">
+                <button
+                  onClick={nextStep}
+                  className="flex items-center space-x-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-8 py-3 rounded-xl hover:from-indigo-600 hover:to-purple-700 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl"
+                >
                   <span>Next Step</span>
                   <ChevronRight className="h-5 w-5" />
                 </button>
