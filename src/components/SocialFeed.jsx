@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
-import { Camera, Calendar, Users, Heart, MessageCircle, Share2, Send, X, Trash2 } from 'lucide-react';
+import { Camera, Calendar, Users, Heart, MessageCircle, Share2, Send, X, Trash2, Reply } from 'lucide-react';
 import { db, storage } from './Firebase';
 import { collection, addDoc, updateDoc, doc, onSnapshot, query, orderBy, serverTimestamp, arrayUnion, arrayRemove, increment, deleteDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -9,8 +9,12 @@ const SocialFeed = ({ user }) => {
   const [newPostContent, setNewPostContent] = useState('');
   const [selectedImage, setSelectedImage] = useState(null);
   const [commentInputs, setCommentInputs] = useState({});
+  const [replyInputs, setReplyInputs] = useState({});
   const [showCommentInput, setShowCommentInput] = useState({});
+  const [showReplyInput, setShowReplyInput] = useState({});
   const [likedPosts, setLikedPosts] = useState(new Set());
+  const [likedComments, setLikedComments] = useState(new Set());
+  const [likedReplies, setLikedReplies] = useState(new Set());
   const [expandedPosts, setExpandedPosts] = useState(new Set());
   const [imagePreview, setImagePreview] = useState('');
   const [showImageInput, setShowImageInput] = useState(false);
@@ -22,10 +26,11 @@ const SocialFeed = ({ user }) => {
   const POST_CHAR_LIMIT = 500;
   const COMMENT_CHAR_LIMIT = 200;
 
-  // Fetch posts from Firestore and reset likedPosts
+  // Fetch posts from Firestore and reset liked states
   useEffect(() => {
-    // Reset likedPosts on mount to ensure likes are cleared on re-render
     setLikedPosts(new Set());
+    setLikedComments(new Set());
+    setLikedReplies(new Set());
     const q = query(collection(db, 'posts'), orderBy('createdAt', 'desc'));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const postsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -142,7 +147,7 @@ const SocialFeed = ({ user }) => {
   }, [newPostContent, user, selectedImage, postType, isPosting]);
 
   // Handle liking a post
-  const handleLike = useCallback(async (postId) => {
+  const handleLikePost = useCallback(async (postId) => {
     if (!user) {
       console.log('Like aborted: User not logged in');
       setError('Please log in to like posts.');
@@ -180,7 +185,7 @@ const SocialFeed = ({ user }) => {
       }
       setLikedPosts(newLikedPosts);
     } catch (error) {
-      console.error('Error updating likes:', {
+      console.error('Error updating post likes:', {
         message: error.message,
         code: error.code,
         stack: error.stack,
@@ -189,6 +194,144 @@ const SocialFeed = ({ user }) => {
       setTimeout(() => setError(''), 3000);
     }
   }, [likedPosts, user, posts]);
+
+  // Handle liking a comment
+  const handleLikeComment = useCallback(async (postId, commentId) => {
+    if (!user) {
+      console.log('Comment like aborted: User not logged in');
+      setError('Please log in to like comments.');
+      setTimeout(() => setError(''), 3000);
+      return;
+    }
+
+    const post = posts.find(p => p.id === postId);
+    if (!post) {
+      console.log('Comment like aborted: Post not found', postId);
+      setError('Post not found.');
+      setTimeout(() => setError(''), 3000);
+      return;
+    }
+
+    const comment = post.comments.find(c => c.id === commentId);
+    if (!comment) {
+      console.log('Comment like aborted: Comment not found', commentId);
+      setError('Comment not found.');
+      setTimeout(() => setError(''), 3000);
+      return;
+    }
+
+    const isLiked = comment.likedBy?.includes(user.uid);
+    const newLikedComments = new Set(likedComments);
+
+    try {
+      const postRef = doc(db, 'posts', postId);
+      const updatedComments = post.comments.map(c => {
+        if (c.id === commentId) {
+          return {
+            ...c,
+            likes: isLiked ? (c.likes || 0) - 1 : (c.likes || 0) + 1,
+            likedBy: isLiked ? (c.likedBy || []).filter(uid => uid !== user.uid) : [...(c.likedBy || []), user.uid],
+          };
+        }
+        return c;
+      });
+
+      await updateDoc(postRef, { comments: updatedComments });
+      if (isLiked) {
+        newLikedComments.delete(`${postId}-${commentId}`);
+        console.log(`Comment ${commentId} on post ${postId} unliked by user ${user.uid}`);
+      } else {
+        newLikedComments.add(`${postId}-${commentId}`);
+        console.log(`Comment ${commentId} on post ${postId} liked by user ${user.uid}`);
+      }
+      setLikedComments(newLikedComments);
+    } catch (error) {
+      console.error('Error updating comment likes:', {
+        message: error.message,
+        code: error.code,
+        stack: error.stack,
+      });
+      setError(`Failed to update comment like: ${error.message}`);
+      setTimeout(() => setError(''), 3000);
+    }
+  }, [likedComments, user, posts]);
+
+  // Handle liking a reply
+  const handleLikeReply = useCallback(async (postId, commentId, replyId) => {
+    if (!user) {
+      console.log('Reply like aborted: User not logged in');
+      setError('Please log in to like replies.');
+      setTimeout(() => setError(''), 3000);
+      return;
+    }
+
+    const post = posts.find(p => p.id === postId);
+    if (!post) {
+      console.log('Reply like aborted: Post not found', postId);
+      setError('Post not found.');
+      setTimeout(() => setError(''), 3000);
+      return;
+    }
+
+    const comment = post.comments.find(c => c.id === commentId);
+    if (!comment) {
+      console.log('Reply like aborted: Comment not found', commentId);
+      setError('Comment not found.');
+      setTimeout(() => setError(''), 3000);
+      return;
+    }
+
+    const reply = comment.replies?.find(r => r.id === replyId);
+    if (!reply) {
+      console.log('Reply like aborted: Reply not found', replyId);
+      setError('Reply not found.');
+      setTimeout(() => setError(''), 3000);
+      return;
+    }
+
+    const isLiked = reply.likedBy?.includes(user.uid);
+    const newLikedReplies = new Set(likedReplies);
+
+    try {
+      const postRef = doc(db, 'posts', postId);
+      const updatedComments = post.comments.map(c => {
+        if (c.id === commentId) {
+          return {
+            ...c,
+            replies: (c.replies || []).map(r => {
+              if (r.id === replyId) {
+                return {
+                  ...r,
+                  likes: isLiked ? (r.likes || 0) - 1 : (r.likes || 0) + 1,
+                  likedBy: isLiked ? (r.likedBy || []).filter(uid => uid !== user.uid) : [...(r.likedBy || []), user.uid],
+                };
+              }
+              return r;
+            }),
+          };
+        }
+        return c;
+      });
+
+      await updateDoc(postRef, { comments: updatedComments });
+      if (isLiked) {
+        newLikedReplies.delete(`${postId}-${commentId}-${replyId}`);
+        console.log(`Reply ${replyId} on comment ${commentId} on post ${postId} unliked by user ${user.uid}`);
+      } else {
+        newLikedReplies.add(`${postId}-${commentId}-${replyId}`);
+        console.log(`Reply ${replyId} on comment ${commentId} on post ${postId} liked by user ${user.uid}`);
+      }
+      setLikedReplies(newLikedReplies);
+    } catch (error) {
+      console.error('Error updating reply likes:', {
+        message: error.message,
+        code: error.code,
+        stack: error.stack,
+      });
+      setError(`Failed to update reply like: ${error.message}`);
+      setTimeout(() => setError(''), 3000);
+    }
+  }, [likedReplies, user, posts]);
 
   // Handle deleting a post
   const handleDeletePost = useCallback(async (postId) => {
@@ -239,14 +382,6 @@ const SocialFeed = ({ user }) => {
       return;
     }
 
-    const hasCommented = post.comments?.some(comment => comment.user.uid === user.uid);
-    if (hasCommented) {
-      console.log('Comment aborted: User has already commented', user.uid);
-      setError('You can only comment once per post.');
-      setTimeout(() => setError(''), 3000);
-      return;
-    }
-
     try {
       const postRef = doc(db, 'posts', postId);
       const newComment = {
@@ -258,6 +393,9 @@ const SocialFeed = ({ user }) => {
         },
         content: commentContent.slice(0, COMMENT_CHAR_LIMIT),
         timestamp: new Date().toLocaleString(),
+        likes: 0,
+        likedBy: [],
+        replies: [],
       };
 
       console.log('Adding comment to post:', { postId, comment: newComment });
@@ -279,6 +417,81 @@ const SocialFeed = ({ user }) => {
     }
   }, [commentInputs, user, posts]);
 
+  // Handle adding a reply
+  const handleAddReply = useCallback(async (postId, commentId) => {
+    if (!user) {
+      console.log('Reply aborted: User not logged in');
+      setError('Please log in to reply.');
+      setTimeout(() => setError(''), 3000);
+      return;
+    }
+
+    const replyContent = replyInputs[`${postId}-${commentId}`]?.trim();
+    if (!replyContent) {
+      console.log('Reply aborted: Empty reply');
+      setError('Please enter a reply.');
+      setTimeout(() => setError(''), 3000);
+      return;
+    }
+
+    const post = posts.find(p => p.id === postId);
+    if (!post) {
+      console.log('Reply aborted: Post not found', postId);
+      setError('Post not found.');
+      setTimeout(() => setError(''), 3000);
+      return;
+    }
+
+    const comment = post.comments.find(c => c.id === commentId);
+    if (!comment) {
+      console.log('Reply aborted: Comment not found', commentId);
+      setError('Comment not found.');
+      setTimeout(() => setError(''), 3000);
+      return;
+    }
+
+    try {
+      const postRef = doc(db, 'posts', postId);
+      const newReply = {
+        id: Date.now() + Math.random(),
+        user: {
+          name: user.username || 'Anonymous',
+          avatar: (user.username || 'U')[0].toUpperCase(),
+          uid: user.uid || '',
+        },
+        content: replyContent.slice(0, COMMENT_CHAR_LIMIT),
+        timestamp: new Date().toLocaleString(),
+        likes: 0,
+        likedBy: [],
+      };
+
+      const updatedComments = post.comments.map(c => {
+        if (c.id === commentId) {
+          return {
+            ...c,
+            replies: [...(c.replies || []), newReply],
+          };
+        }
+        return c;
+      });
+
+      console.log('Adding reply to comment:', { postId, commentId, reply: newReply });
+      await updateDoc(postRef, { comments: updatedComments });
+
+      setReplyInputs(prev => ({ ...prev, [`${postId}-${commentId}`]: '' }));
+      setShowReplyInput(prev => ({ ...prev, [`${postId}-${commentId}`]: false }));
+      console.log('Reply added successfully:', newReply);
+    } catch (error) {
+      console.error('Error adding reply:', {
+        message: error.message,
+        code: error.code,
+        stack: error.stack,
+      });
+      setError(`Failed to add reply: ${error.message}`);
+      setTimeout(() => setError(''), 3000);
+    }
+  }, [replyInputs, user, posts]);
+
   // Toggle comment input visibility
   const toggleCommentInput = useCallback((postId) => {
     setShowCommentInput(prev => ({
@@ -287,9 +500,17 @@ const SocialFeed = ({ user }) => {
     }));
   }, []);
 
+  // Toggle reply input visibility
+  const toggleReplyInput = useCallback((postId, commentId) => {
+    setShowReplyInput(prev => ({
+      ...prev,
+      [`${postId}-${commentId}`]: !prev[`${postId}-${commentId}`],
+    }));
+  }, []);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-red-50 to-pink-50">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {error && (
           <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg text-sm animate-pulse">
             {error}
@@ -336,7 +557,7 @@ const SocialFeed = ({ user }) => {
                   </span>
                   <button
                     onClick={handlePost}
-                    className={`px-4 py-2 rounded-lg transition-all bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:opacity-90 ${isPosting || !newPostContent.trim() || !user ? 'opacity-50 cursor-not-allowed' : 'transform hover:scale-105'}`}
+                    className={`px-4 py-2 rounded-lg transition-all bg-gradient-to-r from-orange-400 to-red-500 text-white hover:opacity-90 ${isPosting || !newPostContent.trim() || !user ? 'opacity-50 cursor-not-allowed' : 'transform hover:scale-105'}`}
                     disabled={isPosting || !newPostContent.trim() || !user}
                   >
                     {isPosting ? 'Posting...' : 'Post'}
@@ -429,7 +650,7 @@ const SocialFeed = ({ user }) => {
                   )}
                   <div className="flex items-center space-x-6 mt-4">
                     <button
-                      onClick={() => handleLike(post.id)}
+                      onClick={() => handleLikePost(post.id)}
                       className={`flex items-center space-x-1 ${post.likedBy?.includes(user?.uid) ? 'text-red-500' : 'text-gray-500'} hover:text-red-500 transition-colors`}
                       disabled={!user}
                     >
@@ -458,13 +679,95 @@ const SocialFeed = ({ user }) => {
                           <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0 bg-gradient-to-r from-orange-400 to-red-500">
                             {comment.user.avatar}
                           </div>
-                          <div className="bg-gray-50 rounded-2xl p-3">
-                            <div className="flex items-center space-x-2 mb-1">
-                              <p className="text-sm font-medium text-gray-900">{comment.user.name}</p>
-                              <span className="text-gray-400 text-xs">•</span>
-                              <time className="text-xs text-gray-400">{comment.timestamp}</time>
+                          <div className="flex-1">
+                            <div className="bg-gray-50 rounded-2xl p-3">
+                              <div className="flex items-center space-x-2 mb-1">
+                                <p className="text-sm font-medium text-gray-900">{comment.user.name}</p>
+                                <span className="text-gray-400 text-xs">•</span>
+                                <time className="text-xs text-gray-400">{comment.timestamp}</time>
+                              </div>
+                              <p className="text-sm text-gray-700">{comment.content}</p>
+                              <div className="flex items-center space-x-4 mt-2">
+                                <button
+                                  onClick={() => handleLikeComment(post.id, comment.id)}
+                                  className={`flex items-center space-x-1 ${comment.likedBy?.includes(user?.uid) ? 'text-red-500' : 'text-gray-500'} hover:text-red-500 transition-colors`}
+                                  disabled={!user}
+                                >
+                                  <Heart size={16} fill={comment.likedBy?.includes(user?.uid) ? 'currentColor' : 'none'} />
+                                  <span>{comment.likes || 0}</span>
+                                </button>
+                                <button
+                                  onClick={() => toggleReplyInput(post.id, comment.id)}
+                                  className="flex items-center space-x-1 text-gray-500 hover:text-blue-500 transition-colors"
+                                  disabled={!user}
+                                >
+                                  <Reply size={16} />
+                                  <span>Reply</span>
+                                </button>
+                              </div>
                             </div>
-                            <p className="text-sm text-gray-700">{comment.content}</p>
+                            {comment.replies?.length > 0 && (
+                              <div className="ml-6 mt-2 space-y-2">
+                                {comment.replies.map(reply => (
+                                  <div key={reply.id} className="flex items-start space-x-3">
+                                    <div className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0 bg-gradient-to-r from-orange-400 to-red-500">
+                                      {reply.user.avatar}
+                                    </div>
+                                    <div className="bg-gray-100 rounded-2xl p-2">
+                                      <div className="flex items-center space-x-2 mb-1">
+                                        <p className="text-xs font-medium text-gray-900">{reply.user.name}</p>
+                                        <span className="text-gray-400 text-xs">•</span>
+                                        <time className="text-xs text-gray-400">{reply.timestamp}</time>
+                                      </div>
+                                      <p className="text-xs text-gray-700">{reply.content}</p>
+                                      <div className="flex items-center space-x-4 mt-1">
+                                        <button
+                                          onClick={() => handleLikeReply(post.id, comment.id, reply.id)}
+                                          className={`flex items-center space-x-1 ${reply.likedBy?.includes(user?.uid) ? 'text-red-500' : 'text-gray-500'} hover:text-red-500 transition-colors`}
+                                          disabled={!user}
+                                        >
+                                          <Heart size={14} fill={reply.likedBy?.includes(user?.uid) ? 'currentColor' : 'none'} />
+                                          <span>{reply.likes || 0}</span>
+                                        </button>
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                            {showReplyInput[`${post.id}-${comment.id}`] && (
+                              <div className="ml-6 mt-2 flex items-center space-x-3">
+                                <div className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0 bg-gradient-to-r from-orange-400 to-red-500">
+                                  {user ? user.username[0].toUpperCase() : 'U'}
+                                </div>
+                                <div className="flex-1 relative">
+                                  <input
+                                    type="text"
+                                    placeholder="Write a reply..."
+                                    className="w-full p-2 pr-10 border rounded-2xl focus:outline-none focus:ring-2 transition-all border-gray-200 focus:ring-blue-500 bg-white text-gray-900 text-xs"
+                                    value={replyInputs[`${post.id}-${comment.id}`] || ''}
+                                    onChange={(e) => setReplyInputs(prev => ({
+                                      ...prev,
+                                      [`${post.id}-${comment.id}`]: e.target.value.slice(0, COMMENT_CHAR_LIMIT),
+                                    }))}
+                                    onKeyPress={(e) => {
+                                      if (e.key === 'Enter' && !e.shiftKey) {
+                                        e.preventDefault();
+                                        handleAddReply(post.id, comment.id);
+                                      }
+                                    }}
+                                    maxLength={COMMENT_CHAR_LIMIT}
+                                  />
+                                  <button
+                                    onClick={() => handleAddReply(post.id, comment.id)}
+                                    className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 text-blue-500 hover:text-blue-600 transition-colors disabled:text-gray-300"
+                                    disabled={!replyInputs[`${post.id}-${comment.id}`]?.trim() || !user}
+                                  >
+                                    <Send size={14} />
+                                  </button>
+                                </div>
+                              </div>
+                            )}
                           </div>
                         </div>
                       ))}
