@@ -20,7 +20,7 @@ const ProfilePage = () => {
           const docSnap = await getDoc(docRef);
           if (docSnap.exists()) {
             const data = docSnap.data();
-            console.log('Fetched profile data from Firestore:', data); // Debug log
+            console.log('Fetched profile data from Firestore:', data); 
             setProfileData(data);
           } else {
             navigate('/profile-setup');

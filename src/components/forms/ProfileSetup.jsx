@@ -101,7 +101,7 @@ const ProfileSetup = ({ userEmail }) => {
         if (docSnap.exists()) {
           const data = docSnap.data();
           if (data.name && data.email && data.major && data.year) {
-            navigate('/platform'); // Redirect to platform instead of profile
+            navigate('/profile'); // Redirect to platform instead of profile
             return;
           }
           setFormData(prev => ({

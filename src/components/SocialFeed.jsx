@@ -21,6 +21,7 @@ const SocialFeed = ({ user }) => {
   const [postType, setPostType] = useState('general');
   const [isPosting, setIsPosting] = useState(false);
   const [error, setError] = useState('');
+  const [shareMessage, setShareMessage] = useState(''); // New state for share feedback
 
   // Character limits
   const POST_CHAR_LIMIT = 500;
@@ -492,6 +493,67 @@ const SocialFeed = ({ user }) => {
     }
   }, [replyInputs, user, posts]);
 
+  // Handle sharing a post
+  const handleSharePost = useCallback(async (postId) => {
+    if (!user) {
+      console.log('Share aborted: User not logged in');
+      setError('Please log in to share posts.');
+      setTimeout(() => setError(''), 3000);
+      return;
+    }
+
+    const post = posts.find(p => p.id === postId);
+    if (!post) {
+      console.log('Share aborted: Post not found', postId);
+      setError('Post not found.');
+      setTimeout(() => setError(''), 3000);
+      return;
+    }
+
+    // Generate a shareable URL (replace with your app's actual domain)
+    const shareUrl = `${window.location.origin}/post/${postId}`;
+    const shareData = {
+      title: `Post by ${post.user.name}`,
+      text: post.content.length > 100 ? `${post.content.slice(0, 100)}...` : post.content,
+      url: shareUrl,
+    };
+
+    // Add image URL if available
+    if (post.imageUrl) {
+      shareData.files = [
+        new File(
+          [await (await fetch(post.imageUrl)).blob()],
+          `post-${postId}-image.jpg`,
+          { type: 'image/jpeg' }
+        )
+      ];
+    }
+
+    try {
+      // Try Web Share API
+      if (navigator.share && (navigator.canShare?.(shareData) ?? true)) {
+        await navigator.share(shareData);
+        console.log(`Post ${postId} shared via Web Share API`);
+        setShareMessage('Post shared successfully!');
+        setTimeout(() => setShareMessage(''), 3000);
+      } else {
+        // Fallback to clipboard
+        await navigator.clipboard.writeText(shareUrl);
+        console.log(`Post ${postId} URL copied to clipboard: ${shareUrl}`);
+        setShareMessage('Link copied to clipboard!');
+        setTimeout(() => setShareMessage(''), 3000);
+      }
+    } catch (error) {
+      console.error('Error sharing post:', {
+        message: error.message,
+        code: error.code,
+        stack: error.stack,
+      });
+      setError(`Failed to share post: ${error.message}`);
+      setTimeout(() => setError(''), 3000);
+    }
+  }, [user, posts]);
+
   // Toggle comment input visibility
   const toggleCommentInput = useCallback((postId) => {
     setShowCommentInput(prev => ({
@@ -510,35 +572,40 @@ const SocialFeed = ({ user }) => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-red-50 to-pink-50">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {error && (
-          <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg text-sm animate-pulse">
+          <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg text-sm sm:text-base animate-pulse">
             {error}
           </div>
         )}
-        <div className="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-gray-100">
-          <div className="flex items-start space-x-4">
-            <div className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0 bg-gradient-to-r from-orange-400 to-red-500">
+        {shareMessage && (
+          <div className="mb-4 p-3 bg-green-100 text-green-700 rounded-lg text-sm sm:text-base animate-pulse">
+            {shareMessage}
+          </div>
+        )}
+        <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6 mb-8 border border-gray-100">
+          <div className="flex items-start space-x-3 sm:space-x-4">
+            <div className="w-8 sm:w-10 h-8 sm:h-10 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0 bg-gradient-to-r from-orange-400 to-red-500">
               {user ? user.username[0].toUpperCase() : 'U'}
             </div>
             <div className="flex-1">
               <textarea
                 placeholder="What's on your mind?"
-                className="w-full p-3 border rounded-2xl focus:outline-none focus:ring-2 resize-none border-gray-200 focus:ring-blue-500 bg-white text-gray-900"
+                className="w-full p-3 border rounded-2xl focus:outline-none focus:ring-2 resize-none border-gray-200 focus:ring-blue-500 bg-white text-gray-900 text-sm sm:text-base"
                 value={newPostContent}
                 onChange={(e) => setNewPostContent(e.target.value.slice(0, POST_CHAR_LIMIT))}
                 rows={3}
                 disabled={isPosting || !user}
               />
-              <div className="flex justify-between items-center mt-3">
-                <div className="flex items-center space-x-4">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mt-3 gap-3">
+                <div className="flex items-center space-x-3 sm:space-x-4">
                   <button
                     onClick={() => setShowImageInput(!showImageInput)}
-                    className="text-gray-600 hover:text-blue-500 flex items-center space-x-1 transition-colors"
+                    className="text-gray-600 hover:text-blue-500 flex items-center space-x-1 transition-colors text-sm sm:text-base"
                     disabled={isPosting || !user}
                   >
                     <Camera size={20} />
-                    <span className="text-sm">Photo</span>
+                    <span>Photo</span>
                   </button>
                   <select
                     value={postType}
@@ -557,7 +624,7 @@ const SocialFeed = ({ user }) => {
                   </span>
                   <button
                     onClick={handlePost}
-                    className={`px-4 py-2 rounded-lg transition-all bg-gradient-to-r from-orange-400 to-red-500 text-white hover:opacity-90 ${isPosting || !newPostContent.trim() || !user ? 'opacity-50 cursor-not-allowed' : 'transform hover:scale-105'}`}
+                    className={`px-4 py-2 rounded-lg transition-all bg-gradient-to-r from-orange-400 to-red-500 text-white hover:opacity-90 text-sm sm:text-base ${isPosting || !newPostContent.trim() || !user ? 'opacity-50 cursor-not-allowed' : 'transform hover:scale-105'}`}
                     disabled={isPosting || !newPostContent.trim() || !user}
                   >
                     {isPosting ? 'Posting...' : 'Post'}
@@ -594,15 +661,15 @@ const SocialFeed = ({ user }) => {
         </div>
         {sortedPosts.length > 0 ? (
           sortedPosts.map(post => (
-            <article key={post.id} className="bg-white border-gray-100 rounded-2xl shadow-lg p-6 mb-6 border">
-              <div className="flex items-start space-x-4">
-                <div className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0 bg-gradient-to-r from-orange-400 to-red-500">
+            <article key={post.id} className="bg-white border-gray-100 rounded-2xl shadow-lg p-4 sm:p-6 mb-6 border">
+              <div className="flex items-start space-x-3 sm:space-x-4">
+                <div className="w-8 sm:w-10 h-8 sm:h-10 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0 bg-gradient-to-r from-orange-400 to-red-500">
                   {post.user.avatar}
                 </div>
                 <div className="flex-1">
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex items-center space-x-2">
-                      <p className="font-medium text-gray-900">
+                      <p className="font-medium text-gray-900 text-sm sm:text-base">
                         {post.user.name}
                       </p>
                       <span className="text-gray-400 text-xs">•</span>
@@ -610,7 +677,7 @@ const SocialFeed = ({ user }) => {
                         {post.user.year}, {post.user.major}
                       </p>
                     </div>
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-2 mt-2 sm:mt-0">
                       <time className="text-sm text-gray-400">
                         {post.timestamp}
                       </time>
@@ -628,7 +695,7 @@ const SocialFeed = ({ user }) => {
                   <div className="mt-2">
                     {post.type === 'event' && <Calendar className="inline-block mr-2 text-blue-500" size={16} />}
                     {post.type === 'group' && <Users className="inline-block mr-2 text-green-500" size={16} />}
-                    <p className={`text-base text-gray-700 ${!expandedPosts.has(post.id) && post.content.length > 200 ? 'line-clamp-3' : ''}`}>
+                    <p className={`text-sm sm:text-base text-gray-700 ${!expandedPosts.has(post.id) && post.content.length > 200 ? 'line-clamp-3' : ''}`}>
                       {post.content}
                     </p>
                     {post.content.length > 200 && (
@@ -648,10 +715,10 @@ const SocialFeed = ({ user }) => {
                   {post.imageUrl && (
                     <img src={post.imageUrl} alt="Post" className="mt-3 max-w-full h-auto rounded-lg" />
                   )}
-                  <div className="flex items-center space-x-6 mt-4">
+                  <div className="flex items-center space-x-4 sm:space-x-6 mt-4">
                     <button
                       onClick={() => handleLikePost(post.id)}
-                      className={`flex items-center space-x-1 ${post.likedBy?.includes(user?.uid) ? 'text-red-500' : 'text-gray-500'} hover:text-red-500 transition-colors`}
+                      className={`flex items-center space-x-1 ${post.likedBy?.includes(user?.uid) ? 'text-red-500' : 'text-gray-500'} hover:text-red-500 transition-colors text-sm sm:text-base`}
                       disabled={!user}
                     >
                       <Heart size={20} fill={post.likedBy?.includes(user?.uid) ? 'currentColor' : 'none'} />
@@ -659,14 +726,16 @@ const SocialFeed = ({ user }) => {
                     </button>
                     <button
                       onClick={() => toggleCommentInput(post.id)}
-                      className="flex items-center space-x-1 text-gray-500 hover:text-blue-500 transition-colors"
+                      className="flex items-center space-x-1 text-gray-500 hover:text-blue-500 transition-colors text-sm sm:text-base"
                       disabled={!user}
                     >
                       <MessageCircle size={20} />
                       <span>{post.comments?.length || 0}</span>
                     </button>
                     <button
-                      className="flex items-center space-x-1 text-gray-500 hover:text-blue-500 transition-colors"
+                      onClick={() => handleSharePost(post.id)}
+                      className="flex items-center space-x-1 text-gray-500 hover:text-blue-500 transition-colors text-sm sm:text-base"
+                      disabled={!user}
                     >
                       <Share2 size={20} />
                       <span>Share</span>
@@ -676,7 +745,7 @@ const SocialFeed = ({ user }) => {
                     <div className="mt-4 space-y-3">
                       {post.comments.map(comment => (
                         <div key={comment.id} className="flex items-start space-x-3">
-                          <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0 bg-gradient-to-r from-orange-400 to-red-500">
+                          <div className="w-6 sm:w-8 h-6 sm:h-8 rounded-full flex items-center justify-center text-white text-xs sm:text-sm font-bold shrink-0 bg-gradient-to-r from-orange-400 to-red-500">
                             {comment.user.avatar}
                           </div>
                           <div className="flex-1">
@@ -690,7 +759,7 @@ const SocialFeed = ({ user }) => {
                               <div className="flex items-center space-x-4 mt-2">
                                 <button
                                   onClick={() => handleLikeComment(post.id, comment.id)}
-                                  className={`flex items-center space-x-1 ${comment.likedBy?.includes(user?.uid) ? 'text-red-500' : 'text-gray-500'} hover:text-red-500 transition-colors`}
+                                  className={`flex items-center space-x-1 ${comment.likedBy?.includes(user?.uid) ? 'text-red-500' : 'text-gray-500'} hover:text-red-500 transition-colors text-sm`}
                                   disabled={!user}
                                 >
                                   <Heart size={16} fill={comment.likedBy?.includes(user?.uid) ? 'currentColor' : 'none'} />
@@ -698,7 +767,7 @@ const SocialFeed = ({ user }) => {
                                 </button>
                                 <button
                                   onClick={() => toggleReplyInput(post.id, comment.id)}
-                                  className="flex items-center space-x-1 text-gray-500 hover:text-blue-500 transition-colors"
+                                  className="flex items-center space-x-1 text-gray-500 hover:text-blue-500 transition-colors text-sm"
                                   disabled={!user}
                                 >
                                   <Reply size={16} />
@@ -707,23 +776,23 @@ const SocialFeed = ({ user }) => {
                               </div>
                             </div>
                             {comment.replies?.length > 0 && (
-                              <div className="ml-6 mt-2 space-y-2">
+                              <div className="ml-4 sm:ml-6 mt-2 space-y-2">
                                 {comment.replies.map(reply => (
-                                  <div key={reply.id} className="flex items-start space-x-3">
-                                    <div className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0 bg-gradient-to-r from-orange-400 to-red-500">
+                                  <div key={reply.id} className="flex items-start space-x-2 sm:space-x-3">
+                                    <div className="w-5 sm:w-6 h-5 sm:h-6 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0 bg-gradient-to-r from-orange-400 to-red-500">
                                       {reply.user.avatar}
                                     </div>
                                     <div className="bg-gray-100 rounded-2xl p-2">
                                       <div className="flex items-center space-x-2 mb-1">
-                                        <p className="text-xs font-medium text-gray-900">{reply.user.name}</p>
+                                        <p className="text-xs sm:text-sm font-medium text-gray-900">{reply.user.name}</p>
                                         <span className="text-gray-400 text-xs">•</span>
                                         <time className="text-xs text-gray-400">{reply.timestamp}</time>
                                       </div>
-                                      <p className="text-xs text-gray-700">{reply.content}</p>
+                                      <p className="text-xs sm:text-sm text-gray-700">{reply.content}</p>
                                       <div className="flex items-center space-x-4 mt-1">
                                         <button
                                           onClick={() => handleLikeReply(post.id, comment.id, reply.id)}
-                                          className={`flex items-center space-x-1 ${reply.likedBy?.includes(user?.uid) ? 'text-red-500' : 'text-gray-500'} hover:text-red-500 transition-colors`}
+                                          className={`flex items-center space-x-1 ${reply.likedBy?.includes(user?.uid) ? 'text-red-500' : 'text-gray-500'} hover:text-red-500 transition-colors text-xs sm:text-sm`}
                                           disabled={!user}
                                         >
                                           <Heart size={14} fill={reply.likedBy?.includes(user?.uid) ? 'currentColor' : 'none'} />
@@ -736,15 +805,15 @@ const SocialFeed = ({ user }) => {
                               </div>
                             )}
                             {showReplyInput[`${post.id}-${comment.id}`] && (
-                              <div className="ml-6 mt-2 flex items-center space-x-3">
-                                <div className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0 bg-gradient-to-r from-orange-400 to-red-500">
+                              <div className="ml-4 sm:ml-6 mt-2 flex items-center space-x-2 sm:space-x-3">
+                                <div className="w-5 sm:w-6 h-5 sm:h-6 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0 bg-gradient-to-r from-orange-400 to-red-500">
                                   {user ? user.username[0].toUpperCase() : 'U'}
                                 </div>
                                 <div className="flex-1 relative">
                                   <input
                                     type="text"
                                     placeholder="Write a reply..."
-                                    className="w-full p-2 pr-10 border rounded-2xl focus:outline-none focus:ring-2 transition-all border-gray-200 focus:ring-blue-500 bg-white text-gray-900 text-xs"
+                                    className="w-full p-2 pr-10 border rounded-2xl focus:outline-none focus:ring-2 transition-all border-gray-200 focus:ring-blue-500 bg-white text-gray-900 text-xs sm:text-sm"
                                     value={replyInputs[`${post.id}-${comment.id}`] || ''}
                                     onChange={(e) => setReplyInputs(prev => ({
                                       ...prev,
@@ -775,14 +844,14 @@ const SocialFeed = ({ user }) => {
                   )}
                   {showCommentInput[post.id] && (
                     <div className="mt-4 flex items-center space-x-3">
-                      <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0 bg-gradient-to-r from-orange-400 to-red-500">
+                      <div className="w-6 sm:w-8 h-6 sm:h-8 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0 bg-gradient-to-r from-orange-400 to-red-500">
                         {user ? user.username[0].toUpperCase() : 'U'}
                       </div>
                       <div className="flex-1 relative">
                         <input
                           type="text"
                           placeholder="Add a comment..."
-                          className="w-full p-3 pr-12 border rounded-2xl focus:outline-none focus:ring-2 transition-all border-gray-200 focus:ring-blue-500 bg-white text-gray-900"
+                          className="w-full p-2 sm:p-3 pr-10 sm:pr-12 border rounded-2xl focus:outline-none focus:ring-2 transition-all border-gray-200 focus:ring-blue-500 bg-white text-gray-900 text-sm sm:text-base"
                           value={commentInputs[post.id] || ''}
                           onChange={(e) => setCommentInputs(prev => ({
                             ...prev,
@@ -798,7 +867,7 @@ const SocialFeed = ({ user }) => {
                         />
                         <button
                           onClick={() => handleAddComment(post.id)}
-                          className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1.5 text-blue-500 hover:text-blue-600 transition-colors disabled:text-gray-300"
+                          className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 sm:p-1.5 text-blue-500 hover:text-blue-600 transition-colors disabled:text-gray-300"
                           disabled={!commentInputs[post.id]?.trim() || !user}
                         >
                           <Send size={16} />
@@ -811,12 +880,12 @@ const SocialFeed = ({ user }) => {
             </article>
           ))
         ) : (
-          <div className="bg-white border-gray-100 rounded-2xl p-12 shadow-lg border text-center">
-            <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-gradient-to-r from-orange-100 to-red-100">
-              <MessageCircle size={32} className="text-orange-400"/>
+          <div className="bg-white border-gray-100 rounded-2xl p-8 sm:p-12 shadow-lg border text-center">
+            <div className="w-12 sm:w-16 h-12 sm:h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-gradient-to-r from-orange-100 to-red-100">
+              <MessageCircle size={24} className="text-orange-400 sm:text-3xl"/>
             </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No posts yet</h3>
-            <p className="mb-4 text-gray-500">Be the first to share something with your community!</p>
+            <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">No posts yet</h3>
+            <p className="mb-4 text-gray-500 text-sm sm:text-base">Be the first to share something with your community!</p>
             {!user && (
               <p className="text-sm text-gray-400">Please log in to create posts.</p>
             )}

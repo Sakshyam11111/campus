@@ -4,8 +4,7 @@ import {
   Users, Clock, Upload, X, Check, Save, Calendar, Trophy, Target,
   Star, Zap, Phone, Globe, Instagram, Linkedin, Briefcase, 
   Heart, ExternalLink, TrendingUp, Activity, MessageCircle, Eye, Plus,
-  Github,
-  ChevronRight
+  Github, ChevronRight
 } from 'lucide-react';
 
 const Profile = ({ user, profileData }) => {
@@ -26,6 +25,10 @@ const Profile = ({ user, profileData }) => {
   const [tempGithubUrl, setTempGithubUrl] = useState('');
   const [tempPortfolioUrl, setTempPortfolioUrl] = useState('');
   const [tempInstagramUrl, setTempInstagramUrl] = useState('');
+  const [showSkillsForm, setShowSkillsForm] = useState(false);
+  const [newSkill, setNewSkill] = useState('');
+  const [showInterestsForm, setShowInterestsForm] = useState(false);
+  const [newInterest, setNewInterest] = useState('');
   const fileInputRef = useRef(null);
 
   const [formData, setFormData] = useState({
@@ -124,6 +127,58 @@ const Profile = ({ user, profileData }) => {
     setTimeout(() => setSuccessMessage(''), 3000);
   };
 
+  const handleAddSkill = () => {
+    if (!newSkill.trim()) {
+      setError('Skill name is required');
+      setTimeout(() => setError(''), 3000);
+      return;
+    }
+
+    setFormData(prev => ({
+      ...prev,
+      skills: [...prev.skills, newSkill.trim()]
+    }));
+    setNewSkill('');
+    setShowSkillsForm(false);
+    setSuccessMessage('Skill added successfully!');
+    setTimeout(() => setSuccessMessage(''), 3000);
+  };
+
+  const handleAddInterest = () => {
+    if (!newInterest.trim()) {
+      setError('Interest name is required');
+      setTimeout(() => setError(''), 3000);
+      return;
+    }
+
+    setFormData(prev => ({
+      ...prev,
+      interests: [...prev.interests, newInterest.trim()]
+    }));
+    setNewInterest('');
+    setShowInterestsForm(false);
+    setSuccessMessage('Interest added successfully!');
+    setTimeout(() => setSuccessMessage(''), 3000);
+  };
+
+  const handleDeleteSkill = (skillToDelete) => {
+    setFormData(prev => ({
+      ...prev,
+      skills: prev.skills.filter(skill => skill !== skillToDelete)
+    }));
+    setSuccessMessage('Skill removed successfully!');
+    setTimeout(() => setSuccessMessage(''), 3000);
+  };
+
+  const handleDeleteInterest = (interestToDelete) => {
+    setFormData(prev => ({
+      ...prev,
+      interests: prev.interests.filter(interest => interest !== interestToDelete)
+    }));
+    setSuccessMessage('Interest removed successfully!');
+    setTimeout(() => setSuccessMessage(''), 3000);
+  };
+
   const isValidUrl = (url) => {
     if (!url) return false;
     const pattern = /^(https?:\/\/)?([\w-]+\.)+[\w-]{2,}(\/.*)?$/i;
@@ -131,33 +186,27 @@ const Profile = ({ user, profileData }) => {
   };
 
   const handleSaveProfile = async () => {
-    // Validate URLs
     const socialMedia = { ...formData.socialMedia };
     const portfolio = formData.portfolio;
     let hasError = false;
 
-    // Check LinkedIn
     if (!socialMedia.linkedin.trim() || !isValidUrl(socialMedia.linkedin)) {
       socialMedia.linkedin = prevSocialMedia?.linkedin || socialMedia.linkedin;
       if (!socialMedia.linkedin) hasError = true;
     }
-    // Check GitHub
     if (!socialMedia.github.trim() || !isValidUrl(socialMedia.github)) {
       socialMedia.github = prevSocialMedia?.github || socialMedia.github;
       if (!socialMedia.github) hasError = true;
     }
-    // Check Instagram (optional, allow empty)
     if (socialMedia.instagram && !isValidUrl(socialMedia.instagram)) {
       socialMedia.instagram = prevSocialMedia?.instagram || socialMedia.instagram;
       if (!socialMedia.instagram) hasError = true;
     }
-    // Check Portfolio
     if (!portfolio.trim() || !isValidUrl(portfolio)) {
       setFormData(prev => ({ ...prev, portfolio: prevPortfolio || portfolio }));
       if (!prevPortfolio) hasError = true;
     }
 
-    // Handle individually edited URLs
     if (isEditingLinkedIn && tempLinkedInUrl && isValidUrl(tempLinkedInUrl)) {
       socialMedia.linkedin = tempLinkedInUrl;
     } else if (isEditingLinkedIn) {
@@ -200,9 +249,10 @@ const Profile = ({ user, profileData }) => {
     setIsEditingInstagram(false);
     setPrevFormData(null);
     setShowAchievementForm(false);
+    setShowSkillsForm(false);
+    setShowInterestsForm(false);
     setSuccessMessage('Profile updated successfully!');
     setTimeout(() => setSuccessMessage(''), 3000);
-    console.log('Saved formData:', formData); // Debug log
   };
 
   const handleEditToggle = () => {
@@ -238,6 +288,8 @@ const Profile = ({ user, profileData }) => {
     setPrevSocialMedia(null);
     setPrevPortfolio(null);
     setPrevFormData(null);
+    setShowSkillsForm(false);
+    setShowInterestsForm(false);
   };
 
   const startEditing = (platform) => {
@@ -367,14 +419,12 @@ const Profile = ({ user, profileData }) => {
     return icons[type] || <Zap size={18} className="text-indigo-500" />;
   };
 
-  // Normalize URL to ensure it starts with http:// or https://
   const normalizeUrl = (url) => {
     if (!url) return '#';
     if (/^https?:\/\//i.test(url)) return url;
     return `https://${url}`;
   };
 
-  // Extract display value (remove https:// for display)
   const getDisplayValue = (url) => {
     if (!url) return 'Not provided';
     return url.replace(/^https?:\/\//i, '').replace(/^www\./i, '');
@@ -383,7 +433,6 @@ const Profile = ({ user, profileData }) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50">
       <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:px-8">
-        {/* Success/Error Messages */}
         {(error || successMessage) && (
           <div className={`mb-6 p-4 rounded-xl flex items-center space-x-3 border ${
             error 
@@ -399,19 +448,15 @@ const Profile = ({ user, profileData }) => {
           </div>
         )}
 
-        {/* Profile Header Card */}
         <div className="bg-white rounded-3xl shadow-xl border border-gray-200 overflow-hidden mb-8">
           <div className="relative">
-            {/* Cover Photo */}
             <div className="h-48 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 relative">
               <div className="absolute inset-0 bg-black opacity-20"></div>
               <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-30"></div>
             </div>
             
-            {/* Profile Content */}
             <div className="relative px-8 pb-8">
               <div className="flex flex-col lg:flex-row items-center lg:items-end space-y-6 lg:space-y-0 lg:space-x-8 -mt-16">
-                {/* Profile Image */}
                 <div className="relative group">
                   <div className="w-32 h-32 relative">
                     <div className="w-full h-full bg-gradient-to-br from-white to-gray-100 rounded-2xl flex items-center justify-center border-4 border-white shadow-2xl overflow-hidden">
@@ -446,7 +491,6 @@ const Profile = ({ user, profileData }) => {
                   </div>
                 </div>
 
-                {/* Profile Info */}
                 <div className="flex-1 text-center lg:text-left space-y-4 mt-6">
                   <div>
                     {isEditing ? (
@@ -505,7 +549,6 @@ const Profile = ({ user, profileData }) => {
                   )}
                 </div>
 
-                {/* Edit/Save/Cancel Buttons */}
                 <div className="flex flex-col space-y-2">
                   <div className="flex space-x-2">
                     <button
@@ -539,11 +582,8 @@ const Profile = ({ user, profileData }) => {
           </div>
         </div>
 
-        {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Column - Main Content */}
           <div className="lg:col-span-2 space-y-8">
-            {/* Academic Stats */}
             <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-6">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-2xl font-bold text-gray-900 flex items-center">
@@ -552,7 +592,6 @@ const Profile = ({ user, profileData }) => {
                 </h3>
               </div>
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                {/* GPA Card */}
                 <div className="bg-gradient-to-br from-green-50 to-green-100 border border-green-200 rounded-2xl p-5 text-center transform hover:scale-105 transition-all duration-300 shadow-sm hover:shadow-md">
                   <Target size={24} className="text-green-600 mx-auto mb-3" />
                   <div className="text-3xl font-bold text-green-700 mb-2">
@@ -571,7 +610,6 @@ const Profile = ({ user, profileData }) => {
                   <div className="text-sm font-medium text-green-600">GPA</div>
                 </div>
 
-                {/* Credit Hours Card */}
                 <div className="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-2xl p-5 text-center transform hover:scale-105 transition-all duration-300 shadow-sm hover:shadow-md">
                   <BookOpen size={24} className="text-blue-600 mx-auto mb-3" />
                   <div className="text-3xl font-bold text-blue-700 mb-2">
@@ -590,7 +628,6 @@ const Profile = ({ user, profileData }) => {
                   <div className="text-sm font-medium text-blue-600">Credit Hours</div>
                 </div>
 
-                {/* Current Courses Card */}
                 <div className="bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 rounded-2xl p-5 text-center transform hover:scale-105 transition-all duration-300 shadow-sm hover:shadow-md">
                   <Clock size={24} className="text-purple-600 mx-auto mb-3" />
                   <div className="text-3xl font-bold text-purple-700 mb-2">
@@ -609,7 +646,6 @@ const Profile = ({ user, profileData }) => {
                   <div className="text-sm font-medium text-purple-600">Current Courses</div>
                 </div>
 
-                {/* Hours Left Card */}
                 <div className="bg-gradient-to-br from-orange-50 to-orange-100 border border-orange-200 rounded-2xl p-5 text-center transform hover:scale-105 transition-all duration-300 shadow-sm hover:shadow-md">
                   <Calendar size={24} className="text-orange-600 mx-auto mb-3" />
                   <div className="text-3xl font-bold text-orange-700 mb-2">
@@ -630,7 +666,6 @@ const Profile = ({ user, profileData }) => {
               </div>
             </div>
 
-            {/* Recent Activity */}
             <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-6">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-2xl font-bold text-gray-900 flex items-center">
@@ -711,9 +746,72 @@ const Profile = ({ user, profileData }) => {
               </div>
             </div>
 
-            {/* Skills & Interests */}
             <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-6">
-              <h3 className="text-2xl font-bold text-gray-900 mb-6">Skills & Interests</h3>
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-2xl font-bold text-gray-900">Skills & Interests</h3>
+                {isEditing && (
+                  <div className="flex space-x-2">
+                    <button 
+                      onClick={() => setShowSkillsForm(!showSkillsForm)} 
+                      className="flex items-center space-x-2 text-indigo-600 hover:text-indigo-800 transition-colors"
+                    >
+                      <Plus size={16} />
+                      <span className="text-sm font-medium">{showSkillsForm ? 'Cancel' : 'Add Skill'}</span>
+                    </button>
+                    <button 
+                      onClick={() => setShowInterestsForm(!showInterestsForm)} 
+                      className="flex items-center space-x-2 text-indigo-600 hover:text-indigo-800 transition-colors"
+                    >
+                      <Plus size={16} />
+                      <span className="text-sm font-medium">{showInterestsForm ? 'Cancel' : 'Add Interest'}</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+              {showSkillsForm && (
+                <div className="mb-6 p-4 bg-gray-50 rounded-xl border border-gray-200">
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">New Skill</label>
+                      <input
+                        type="text"
+                        value={newSkill}
+                        onChange={(e) => setNewSkill(e.target.value)}
+                        placeholder="Enter new skill"
+                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                      />
+                    </div>
+                    <button
+                      onClick={handleAddSkill}
+                      className="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white px-4 py-3 rounded-xl hover:from-green-600 hover:to-emerald-700 transition-all duration-200"
+                    >
+                      Add Skill
+                    </button>
+                  </div>
+                </div>
+              )}
+              {showInterestsForm && (
+                <div className="mb-6 p-4 bg-gray-50 rounded-xl border border-gray-200">
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">New Interest</label>
+                      <input
+                        type="text"
+                        value={newInterest}
+                        onChange={(e) => setNewInterest(e.target.value)}
+                        placeholder="Enter new interest"
+                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                      />
+                    </div>
+                    <button
+                      onClick={handleAddInterest}
+                      className="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white px-4 py-3 rounded-xl hover:from-green-600 hover:to-emerald-700 transition-all duration-200"
+                    >
+                      Add Interest
+                    </button>
+                  </div>
+                </div>
+              )}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <div>
                   <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
@@ -722,9 +820,19 @@ const Profile = ({ user, profileData }) => {
                   </h4>
                   <div className="flex flex-wrap gap-3">
                     {formData.skills.map((skill, index) => (
-                      <span key={index} className="px-4 py-2 bg-gradient-to-r from-blue-100 to-blue-200 text-blue-700 rounded-xl text-sm font-medium hover:scale-105 transition-transform cursor-pointer">
-                        {skill}
-                      </span>
+                      <div key={index} className="flex items-center space-x-2">
+                        <span className="px-4 py-2 bg-gradient-to-r from-blue-100 to-blue-200 text-blue-700 rounded-xl text-sm font-medium hover:scale-105 transition-transform cursor-pointer">
+                          {skill}
+                        </span>
+                        {isEditing && (
+                          <button
+                            onClick={() => handleDeleteSkill(skill)}
+                            className="p-1 bg-red-500 hover:bg-red-600 rounded-full text-white"
+                          >
+                            <X size={14} />
+                          </button>
+                        )}
+                      </div>
                     ))}
                   </div>
                 </div>
@@ -735,38 +843,75 @@ const Profile = ({ user, profileData }) => {
                   </h4>
                   <div className="flex flex-wrap gap-3">
                     {formData.interests.map((interest, index) => (
-                      <span key={index} className="px-4 py-2 bg-gradient-to-r from-pink-100 to-pink-200 text-pink-700 rounded-xl text-sm font-medium hover:scale-105 transition-transform cursor-pointer">
-                        {interest}
-                      </span>
+                      <div key={index} className="flex items-center space-x-2">
+                        <span className="px-4 py-2 bg-gradient-to-r from-pink-100 to-pink-200 text-pink-700 rounded-xl text-sm font-medium hover:scale-105 transition-transform cursor-pointer">
+                          {interest}
+                        </span>
+                        {isEditing && (
+                          <button
+                            onClick={() => handleDeleteInterest(interest)}
+                            className="p-1 bg-red-500 hover:bg-red-600 rounded-full text-white"
+                          >
+                            <X size={14} />
+                          </button>
+                        )}
+                      </div>
                     ))}
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Contact Information */}
             <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-6">
               <h3 className="text-xl font-bold text-gray-900 mb-6">Contact Information</h3>
               <div className="space-y-4">
                 <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl">
                   <Mail size={18} className="text-gray-600" />
-                  <span className="text-gray-800">{formData.email}</span>
+                  {isEditing ? (
+                    <input
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-2 text-sm text-gray-600 bg-transparent border-b-2 border-gray-300 focus:border-indigo-500 outline-none"
+                    />
+                  ) : (
+                    <span className="text-gray-800">{formData.email}</span>
+                  )}
                 </div>
                 <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl">
                   <Phone size={18} className="text-gray-600" />
-                  <span className="text-gray-800">{formData.phone}</span>
+                  {isEditing ? (
+                    <input
+                      type="tel"
+                      name="phone"
+                      value={formData.phone}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-2 text-sm text-gray-600 bg-transparent border-b-2 border-gray-300 focus:border-indigo-500 outline-none"
+                    />
+                  ) : (
+                    <span className="text-gray-800">{formData.phone}</span>
+                  )}
                 </div>
                 <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl">
                   <MapPin size={18} className="text-gray-600" />
-                  <span className="text-gray-800">{formData.location}</span>
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      name="location"
+                      value={formData.location}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-2 text-sm text-gray-600 bg-transparent border-b-2 border-gray-300 focus:border-indigo-500 outline-none"
+                    />
+                  ) : (
+                    <span className="text-gray-800">{formData.location}</span>
+                  )}
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Right Column - Sidebar */}
           <div className="space-y-8">
-            {/* Quick Actions */}
             <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-6">
               <h3 className="text-xl font-bold text-gray-900 mb-6">Quick Actions</h3>
               <div className="space-y-3">
@@ -847,11 +992,9 @@ const Profile = ({ user, profileData }) => {
               </div>
             </div>
 
-            {/* Connect With Me */}
             <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-6">
               <h3 className="text-xl font-bold text-gray-900 mb-6">Connect With Me</h3>
               <div className="space-y-3">
-                {/* LinkedIn */}
                 <div className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 rounded-xl hover:from-blue-100 hover:to-blue-200 transition-all duration-300 group hover:scale-102 hover:shadow-md">
                   <div className="flex items-center space-x-3 w-full">
                     <div className="p-2 bg-blue-200 rounded-lg">
@@ -920,7 +1063,6 @@ const Profile = ({ user, profileData }) => {
                   )}
                 </div>
 
-                {/* GitHub */}
                 <div className="flex items-center justify-between p-4 bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-xl hover:from-gray-100 hover:to-gray-200 transition-all duration-300 group hover:scale-102 hover:shadow-md">
                   <div className="flex items-center space-x-3 w-full">
                     <div className="p-2 bg-gray-200 rounded-lg">
@@ -989,7 +1131,6 @@ const Profile = ({ user, profileData }) => {
                   )}
                 </div>
 
-                {/* Portfolio */}
                 <div className="flex items-center justify-between p-4 bg-gradient-to-r from-indigo-50 to-indigo-100 border border-indigo-200 rounded-xl hover:from-indigo-100 hover:to-indigo-200 transition-all duration-300 group hover:scale-102 hover:shadow-md">
                   <div className="flex items-center space-x-3 w-full">
                     <div className="p-2 bg-indigo-200 rounded-lg">
@@ -1013,8 +1154,7 @@ const Profile = ({ user, profileData }) => {
                             <div className="flex space-x-2">
                               <button
                                 onClick={() => saveEditing('portfolio')}
-                                className="p-1 bg-green-5
-System: 00 hover:bg-green-600 rounded-full text-white"
+                                className="p-1 bg-green-500 hover:bg-green-600 rounded-full text-white"
                               >
                                 <Check size={16} />
                               </button>
@@ -1059,7 +1199,6 @@ System: 00 hover:bg-green-600 rounded-full text-white"
                   )}
                 </div>
 
-                {/* Instagram */}
                 <div className="flex items-center justify-between p-4 bg-gradient-to-r from-pink-50 to-pink-100 border border-pink-200 rounded-xl hover:from-pink-100 hover:to-pink-200 transition-all duration-300 group hover:scale-102 hover:shadow-md">
                   <div className="flex items-center space-x-3 w-full">
                     <div className="p-2 bg-pink-200 rounded-lg">
